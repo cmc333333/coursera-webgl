@@ -5,7 +5,7 @@ var program;
 
 var points = [];
 
-var NumTimesToSubdivide = 8;
+var NumTimesToSubdivide = 5;
 
 window.onload = function init()
 {
@@ -53,12 +53,18 @@ window.onload = function init()
     gl.enableVertexAttribArray( vPosition );
 
     var theta = gl.getUniformLocation(program, "theta");
-    gl.uniform1f(theta, 0.1);
+    gl.uniform1f(theta, 0.0);
 
     var dFactor = gl.getUniformLocation(program, "dFactor");
-    gl.uniform1f(dFactor, 2.0);
+    gl.uniform1f(dFactor, 1.0);
 
     render();
+    $('#theta').knob({
+      "release": function(value) {
+        gl.uniform1f(theta, value * Math.PI / -50);
+        render();
+      }
+    });
 };
 
 function triangle( a, b, c )

@@ -15,7 +15,7 @@ main()
 {
     float x = vPosition[0];
     float y = vPosition[1];
-    float d = dFactor*sqrt(x*x + y*y);
+    float d = 1.0; //dFactor*sqrt(x*x + y*y);
     float x_ = x * cos(d*theta) - y * sin(d*theta);
     float y_ = x * sin(d*theta) + y * cos(d*theta);
     gl_Position = vec4(x_, y_, vPosition[2], vPosition[3]);
@@ -32,15 +32,29 @@ main()
 }
 </script>
 
+<script type="text/javascript" src="../dist/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="../dist/jquery.knob.min.js"></script>
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MV.js"></script>
 <script type="text/javascript" src="gasket2.js"></script>
+<style>
+  label {
+    display: inline-block;
+    height: 50px;
+    vertical-align: middle;
+  }
+</style>
 </head>   
 
 <body>
-<canvas id="gl-canvas" width="512" height="512">
-Oops ... your browser doesn't support the HTML5 canvas element
-</canvas>
+  <div class="input">
+    <label for="theta">Rotation (%)</label>
+    <input type="text" value="0" class="dial" id="theta" 
+           data-height="50" data-width="50" data-cursor="true" data-thickness="0.1" />
+  </div>
+  <canvas id="gl-canvas" width="512" height="512">
+  Oops ... your browser doesn't support the HTML5 canvas element
+  </canvas>
 </body>
 </html>
