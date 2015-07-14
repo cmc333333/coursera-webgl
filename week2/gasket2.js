@@ -1,10 +1,11 @@
 
 var canvas;
 var gl;
+var program;
 
 var points = [];
 
-var NumTimesToSubdivide = 5;
+var NumTimesToSubdivide = 8;
 
 window.onload = function init()
 {
@@ -36,7 +37,7 @@ window.onload = function init()
 
     //  Load shaders and initialize attribute buffers
     
-    var program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
     // Load the data into the GPU
@@ -50,6 +51,12 @@ window.onload = function init()
     var vPosition = gl.getAttribLocation( program, "vPosition" );
     gl.vertexAttribPointer( vPosition, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
+
+    var theta = gl.getUniformLocation(program, "theta");
+    gl.uniform1f(theta, 0.1);
+
+    var dFactor = gl.getUniformLocation(program, "dFactor");
+    gl.uniform1f(dFactor, 2.0);
 
     render();
 };
