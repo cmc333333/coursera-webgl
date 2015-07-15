@@ -2,19 +2,23 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-<title>2D Sierpinski Gasket</title>
+<title>Gasket w/ Twist</title>
 
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec4 vPosition;
 uniform float theta;
+uniform int twist;
 
 void
 main()
 {
     float x = vPosition[0];
     float y = vPosition[1];
-    float d = 0.5*sqrt(x*x + y*y);
+    float d = 1.0;
+    if (twist > 0) {
+      d = 0.5*sqrt(x*x + y*y);
+    }
     float x_ = x * cos(d*theta) - y * sin(d*theta);
     float y_ = x * sin(d*theta) + y * cos(d*theta);
     gl_Position = vec4(x_, y_, vPosition[2], vPosition[3]);
@@ -32,25 +36,39 @@ main()
 </script>
 
 <script type="text/javascript" src="../dist/jquery-2.1.4.min.js"></script>
-<script type="text/javascript" src="../dist/jquery.knob.min.js"></script>
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MV.js"></script>
 <script type="text/javascript" src="gasket2.js"></script>
 <style>
-  label {
+  .input {
     display: inline-block;
-    height: 50px;
-    vertical-align: middle;
+    border: 1px solid #666;
+    padding: 0.5em;
+    margin: 1em;
+    line-height: 2em;
+    height: 2em;
+  }
+  input[type=number] {
+    width: 3em;
   }
 </style>
 </head>   
 
 <body>
-  <div class="input">
-    <label for="theta">Theta</label>
-    <input type="text" value="0" class="dial" id="theta" 
-           data-height="50" data-width="50" data-cursor="true" data-thickness="0.1" />
+  <div>
+    <div class="input">
+      <label for="theta">Theta (&deg;)</label>
+      <input type="number" value="15" id="theta" />
+    </div>
+    <div class="input">
+      <label for="subdivisions">Subdivisions</label>
+      <input type="number" id="subdivisions" value="5" min="0" max="10" />
+    </div>
+    <div class="input">
+      <label for="twist">Twist</label>
+      <input type="checkbox" id="twist" />
+    </div>
   </div>
   <canvas id="gl-canvas" width="512" height="512">
   Oops ... your browser doesn't support the HTML5 canvas element

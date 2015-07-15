@@ -1,7 +1,7 @@
 
 var App = {
-  points: [],
-  init: function() {
+  dataLength: 0,
+  initGL: function() {
     canvas = document.getElementById("gl-canvas");
     this.gl = WebGLUtils.setupWebGL(canvas);
     if (!this.gl) { alert( "WebGL isn't available" ); }
@@ -13,61 +13,71 @@ var App = {
     //  Load shaders and initialize attribute buffers
     this.program = initShaders(this.gl, "vertex-shader", "fragment-shader");
     this.gl.useProgram(this.program);
-  },
-  sendPoints: function() {
+
     var bufferId = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, bufferId);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(this.points),
-                       this.gl.STATIC_DRAW );
-  },
-  setTheta: function(value) {
-    var theta = this.gl.getUniformLocation(this.program, "theta");
-    this.gl.uniform1f(theta, value);
-  },
-  setVPosition: function() {
+
     var vPosition = this.gl.getAttribLocation(this.program, "vPosition");
     this.gl.vertexAttribPointer(vPosition, 2, this.gl.FLOAT, false, 0, 0);
     this.gl.enableVertexAttribArray(vPosition);
   },
-  recalcVertices: function(numDivisions) {
-    this.points = [];
-    this.divideTriangle(vec2(-1, -1), vec2(0, 1), vec2(1, -1), numDivisions);
+  thetaInRadians: function() {
+    return this.theta() * -2 * Math.PI / 360;
   },
-  divideTriangle: function(a, b, c, count) {
-    // base case
-    if (count === 0) {
-      this.points.push(a, b, c);
-    } else {
-        //bisect the sides
-        var ab = mix(a, b, 0.5);
-        var ac = mix(a, c, 0.5);
-        var bc = mix(b, c, 0.5);
+  setTheta: function() {
+    var theta = this.gl.getUniformLocation(this.program, "theta");
+    this.gl.uniform1f(theta, this.thetaInRadians());
+  },
+  setTwist: function() {
+    var twist = this.gl.getUniformLocation(this.program, "twist");
+    this.gl.uniform1i(twist, this.twist() * 1);
+  },
+  recalcVertices: function() {
+    var points = [],
+        divideTriangle = function(a, b, c, count) {
+          // base case
+          if (count === 0) {
+            points.push(a, b, c);
+          } else {
+              //bisect the sides
+              var ab = mix(a, b, 0.5);
+              var ac = mix(a, c, 0.5);
+              var bc = mix(b, c, 0.5);
+              // three new triangles
+              divideTriangle(a, ab, ac, count - 1);
+              divideTriangle(c, ac, bc, count - 1);
+              divideTriangle(b, bc, ab, count - 1);
+          }
+        };
 
-        --count;
-
-        // three new triangles
-        this.divideTriangle(a, ab, ac, count);
-        this.divideTriangle(c, ac, bc, count);
-        this.divideTriangle(b, bc, ab, count);
-    }
+    divideTriangle(vec2(-1, -1), vec2(0, 1), vec2(1, -1), this.subdivisions());
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(points),
+                       this.gl.STATIC_DRAW );
+    this.dataLength = points.length;
   },
   render: function() {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, this.points.length);
+    this.gl.drawArrays(this.gl.TRIANGLES, 0, this.dataLength);
+  },
+  sendAndRender: function() { 
+    this.recalcVertices();
+    this.setTheta();
+    this.setTwist();
+    this.render(); 
   }
 }
 
 $(function() {
-  App.init();
-  App.recalcVertices(5);
-  App.sendPoints();
-  App.setVPosition();
-  App.setTheta(0.0);
-  App.render();
-  $('#theta').knob({
-    release: function(value) {
-      App.setTheta(value * Math.PI / -50);
-      App.render();
-    }
-  });
+  var $theta = $('#theta'),
+      $sub = $('#subdivisions'),
+      $twist = $('#twist');
+  App.initGL();
+  App.theta = function() { return parseFloat($theta.val()); };
+  App.subdivisions = function() { return parseInt($sub.val()); };
+  App.twist = function() { return $twist.is(':checked'); };
+  App.sendAndRender();
+
+  $theta.change(App.sendAndRender.bind(App));
+  $sub.change(App.sendAndRender.bind(App));
+  $twist.change(App.sendAndRender.bind(App));
 });
