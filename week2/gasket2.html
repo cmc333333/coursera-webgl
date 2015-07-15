@@ -8,14 +8,13 @@
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec4 vPosition;
 uniform float theta;
-uniform float dFactor;
 
 void
 main()
 {
     float x = vPosition[0];
     float y = vPosition[1];
-    float d = 1.0; //dFactor*sqrt(x*x + y*y);
+    float d = 0.5*sqrt(x*x + y*y);
     float x_ = x * cos(d*theta) - y * sin(d*theta);
     float y_ = x * sin(d*theta) + y * cos(d*theta);
     gl_Position = vec4(x_, y_, vPosition[2], vPosition[3]);
@@ -49,7 +48,7 @@ main()
 
 <body>
   <div class="input">
-    <label for="theta">Rotation (%)</label>
+    <label for="theta">Theta</label>
     <input type="text" value="0" class="dial" id="theta" 
            data-height="50" data-width="50" data-cursor="true" data-thickness="0.1" />
   </div>
