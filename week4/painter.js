@@ -1,7 +1,7 @@
 
 var App = {
-  strokeLengths: [],
-  points: [],
+  strokes: [],
+  currentStroke: null,
   initGL: function() {
     canvas = document.getElementById("gl-canvas");
     this.gl = WebGLUtils.setupWebGL(canvas);
@@ -23,49 +23,51 @@ var App = {
     this.gl.enableVertexAttribArray(vPosition);
   },
   startStroke: function(x, y) {
-    this.strokeLengths.unshift(0);
+    this.currentStroke = {
+      points: []
+    };
+    this.strokes.push(this.currentStroke);
     this.addPoint(x, y);
+    this.render();
   },
   addPoint: function(x, y) {
-    this.points.push(vec2(x,y));
-    this.strokeLengths[0]++;
+    if (this.currentStroke) {
+      this.currentStroke.points.push(vec2(x, y));
+      this.render();
+    }
   },
   stopStroke: function(x, y) {
     this.addPoint(x, y);
+    this.currentStroke = null
+    this.render();
   },
   render: function() {
-    var numProcessed = 0;
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(this.points),
-                       this.gl.STATIC_DRAW);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    $.each(this.strokeLengths, function(_, strokeLength) {
-      this.gl.drawArrays(this.gl.LINE_STRIP, numProcessed, strokeLength);
-      numProcessed += strokeLength;
-    }.bind(this));
-  },
-  sendAndRender: function() { 
-    this.render(); 
+    for (var i = 0, len = this.strokes.length; i < len; i++) {
+      var stroke = this.strokes[i];
+      this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(stroke.points),
+                         this.gl.STATIC_DRAW);
+      this.gl.drawArrays(this.gl.LINE_STRIP, 0, stroke.points.length);
+    }
   }
 }
 
 $(function() {
-  var $theta = $('#theta'),
-      $sub = $('#subdivisions'),
-      $twist = $('#twist');
+  var $canvas = $('canvas'),
+      sendMouseTo = function(fn) {
+        return function(ev) {
+          var offset = $canvas.offset(),
+              height = $canvas.height(),
+              width = $canvas.width(),
+              x = ev.pageX - offset.left,
+              y = ev.pageY - offset.top;
+          fn(-1 + 2*x/width, -1 + 2*(height - y)/height);
+        };
+      };
   App.initGL();
-  App.theta = function() { return parseFloat($theta.val()); };
-  App.subdivisions = function() { return parseInt($sub.val()); };
-  App.twist = function() { return $twist.is(':checked'); };
-  App.startStroke(0, 0);
-  App.addPoint(0.5, 0);
-  App.stopStroke(0.5, 0.5);
+  App.render();
 
-  App.startStroke(-0.5, 0);
-  App.addPoint(-0.5, -0.5);
-  App.stopStroke(0.0, 1.0);
-  App.sendAndRender();
-
-  $theta.change(App.sendAndRender.bind(App));
-  $sub.change(App.sendAndRender.bind(App));
-  $twist.change(App.sendAndRender.bind(App));
+  $canvas.mousedown(sendMouseTo(App.startStroke.bind(App)));
+  $canvas.mousemove(sendMouseTo(App.addPoint.bind(App)));
+  $canvas.mouseup(sendMouseTo(App.stopStroke.bind(App)));
 });
