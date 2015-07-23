@@ -39,8 +39,12 @@ main()
   table {
     display: inline-block;
     vertical-align: top;
+    text-align: center;
   }
-  input.selected {
+  .color {
+    border: 2px dotted grey;
+  }
+  .color.selected {
     border: 2px solid red;
   }
 </style>
@@ -51,37 +55,43 @@ main()
   Oops ... your browser doesn't support the HTML5 canvas element
   </canvas>
   <table>
+    <tr><th colspan="2">Color Selection</th><tr>
     <tr>
-      <td><input type="button" class="selected" style='background-color: black;' /></td>
-      <td><input type="button" style='background-color: gray;' /></td>
+      <td><input type="button" class="selected color" style='background-color: black;' /></td>
+      <td><input type="button" class="color" style='background-color: gray;' /></td>
     </tr>
     <tr>
-      <td><input type="button" style='background-color: maroon;' /></td>
-      <td><input type="button" style='background-color: red;' /></td>
+      <td><input type="button" class="color" style='background-color: maroon;' /></td>
+      <td><input type="button" class="color" style='background-color: red;' /></td>
     </tr>
     <tr>
-      <td><input type="button" style='background-color: green;' /></td>
-      <td><input type="button" style='background-color: lime;' /></td>
+      <td><input type="button" class="color" style='background-color: green;' /></td>
+      <td><input type="button" class="color" style='background-color: lime;' /></td>
     </tr>
     <tr>
-      <td><input type="button" style='background-color: olive;' /></td>
-      <td><input type="button" style='background-color: yellow;' /></td>
+      <td><input type="button" class="color" style='background-color: olive;' /></td>
+      <td><input type="button" class="color" style='background-color: yellow;' /></td>
     </tr>
     <tr>
-      <td><input type="button" style='background-color: navy;' /></td>
-      <td><input type="button" style='background-color: blue;' /></td>
+      <td><input type="button" class="color" style='background-color: navy;' /></td>
+      <td><input type="button" class="color" style='background-color: blue;' /></td>
     </tr>
     <tr>
-      <td><input type="button" style='background-color: purple;' /></td>
-      <td><input type="button" style='background-color: fuchsia;' /></td>
+      <td><input type="button" class="color" style='background-color: purple;' /></td>
+      <td><input type="button" class="color" style='background-color: fuchsia;' /></td>
     </tr>
     <tr>
-      <td><input type="button" style='background-color: teal;' /></td>
-      <td><input type="button" style='background-color: aqua;' /></td>
+      <td><input type="button" class="color" style='background-color: teal;' /></td>
+      <td><input type="button" class="color" style='background-color: aqua;' /></td>
     </tr>
     <tr>
-      <td><input type="button" style='background-color: silver;' /></td>
-      <td><input type="button" style='background-color: white;' /></td>
+      <td><input type="button" class="color" style='background-color: silver;' /></td>
+      <td><input type="button" class="color" style='background-color: white;' /></td>
+    </tr>
+    <tr><th colspan="2">Brush Size</th><tr>
+      <td colspan="2">
+        <input type="range" class="brush-size" value="1" min="1" max="8" />
+      </td>
     </tr>
   </table>
 </body>
