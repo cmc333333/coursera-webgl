@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<title>CAD</title>
+
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec3 vPosition;
+uniform mat4 transform;
+
+void
+main()
+{
+    gl_Position = transform * vec4(vPosition, 1.0);
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void
+main()
+{
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+</script>
+
+<script type="text/javascript" src="../dist/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="../dist/underscore-min.js"></script>
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="cad.js"></script>
+<style>
+  canvas {
+    border: 1px solid black;
+  }
+  table {
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+  }
+  .color {
+    border: 2px dotted grey;
+  }
+  .color.selected {
+    border: 2px solid red;
+  }
+</style>
+</head>   
+
+<body>
+  <canvas id="gl-canvas" width="512" height="512">
+  Oops ... your browser doesn't support the HTML5 canvas element
+  </canvas>
+  <table>
+    <tr><th>Rotate Around X</th><tr>
+    <tr><td><input type="range" data-attr="rotate-x" value="0" min="0" max="359" /></td></tr>
+    <tr><th>Rotate Around Y</th><tr>
+    <tr><td><input type="range" data-attr="rotate-y" value="0" min="0" max="359" /></td></tr>
+    <tr><th>Rotate Around Z</th><tr>
+    <tr><td><input type="range" data-attr="rotate-z" value="0" min="0" max="359" /></td></tr>
+  </table>
+</body>
+</html>
+
