@@ -1,35 +1,18 @@
-var Cone = function(numBasePoints) {
-  var verts = [vec3(0, 0.25, 0)],
-      wireframe = [];
 
-  for (var i = 0; i < numBasePoints; i++) {
-    var theta = 2 * Math.PI * i / numBasePoints;
-    verts.push(vec3(Math.cos(theta)/4, -0.25, Math.sin(theta)/4));
-    wireframe.push(0, i+1);   // line from tip to here
-    wireframe.push(i+1, i+2); // line from here to next point
-  }
-  wireframe[wireframe.length - 1] = 1;    // link the last bit of the circle
-
-  return {
-    vertices: verts,
-    mode: "TRIANGLE_FAN",
-    indices: _.range(numBasePoints + 1),
-    wireframe: wireframe
-  };
-};
-
-var Cylinder = function(numBasePoints) {
+var Sphere = function(numBasePoints) {
   var verts = [],
       wireframe = [];
 
   for (var i = 0; i < numBasePoints; i++) {
     var theta = 2 * Math.PI * i / numBasePoints;
-    verts.push(vec3(Math.cos(theta)/4, -0.25, Math.sin(theta)/4));
-    verts.push(vec3(Math.cos(theta)/4, 0.25, Math.sin(theta)/4));
-    wireframe.push(2*i, 2*i+1);                     // vertical
-    wireframe.push(2*i, (2*i+2) % (numBasePoints*2));   // horizontal (bottom)
-    wireframe.push(2*i, (2*i+3) % (numBasePoints*2));   // diagonal
-    wireframe.push(2*i+1, (2*i+3) % (numBasePoints*2)); // horizontal (top)
+    for (var j = 0; j <= numBasePoints / 2; j++) {
+      var phi = 2 * Math.PI * j / numBasePoints;
+      verts.push(vec3(Math.sin(phi)*Math.cos(theta) / 4,
+                      Math.sin(phi)*Math.sin(theta) / 4,
+                      Math.cos(phi) / 4));
+      wireframe.push(verts.length - 1, verts.length);
+    }
+    wireframe[wireframe.length - 1] = 0;
   }
 
   return {
@@ -62,8 +45,9 @@ var App = {
     this.gl.vertexAttribPointer(vPosition, 3, this.gl.FLOAT, false, 0, 0);
     this.gl.enableVertexAttribArray(vPosition);
   },
-  cone: Cone(12),
-  cylinder: Cylinder(12),
+  cone: Shapes.Cone(12),
+  cylinder: Shapes.Cylinder(12),
+  sphere: Sphere(12),
   editing: null,
   render: function() {
     var transformLoc = this.gl.getUniformLocation(this.program, "transform"),
@@ -78,25 +62,40 @@ var App = {
     this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(this.editing.vertices),
                        this.gl.STATIC_DRAW);
     
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(this.editing.wireframe),
-                       this.gl.STATIC_DRAW);
-
-    this.gl.drawElements(this.gl.LINES, this.editing.wireframe.length, this.gl.UNSIGNED_BYTE, 0);
+    if (this.wireframe()) {
+      this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER,
+                         new Uint8Array(this.editing.wireframe),
+                         this.gl.STATIC_DRAW);
+      this.gl.drawElements(this.gl.LINES, this.editing.wireframe.length,
+                           this.gl.UNSIGNED_BYTE, 0);
+    } else {
+      for (var i = 0; i < this.editing.faces.length; i++) {
+        var face = this.editing.faces[i];
+        this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER,
+                           new Uint8Array(face.indices),
+                           this.gl.STATIC_DRAW);
+        this.gl.drawElements(this.gl[face.mode], face.indices.length,
+                             this.gl.UNSIGNED_BYTE, 0);
+      }
+    }
   }
 }
 
 $(function() {
   var $rotateX = $('input[data-attr=rotate-x]'),
       $rotateY = $('input[data-attr=rotate-y]'),
-      $rotateZ = $('input[data-attr=rotate-z]');
+      $rotateZ = $('input[data-attr=rotate-z]'),
+      $wireframe = $('input[type=checkbox]');
 
   App.initGL();
   App.rotateX = function() { return $rotateX.val(); }
   App.rotateY = function() { return $rotateY.val(); }
   App.rotateZ = function() { return $rotateZ.val(); }
+  App.wireframe = function() { return $wireframe.is(':checked'); }
   App.render();
 
   $rotateX.on("input change", App.render.bind(App));
   $rotateY.on("input change", App.render.bind(App));
   $rotateZ.on("input change", App.render.bind(App));
+  $wireframe.on("input change", App.render.bind(App));
 });

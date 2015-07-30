@@ -27,10 +27,10 @@ main()
 </script>
 
 <script type="text/javascript" src="../dist/jquery-2.1.4.min.js"></script>
-<script type="text/javascript" src="../dist/underscore-min.js"></script>
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="shapes.js"></script>
 <script type="text/javascript" src="cad.js"></script>
 <style>
   canvas {
@@ -61,6 +61,8 @@ main()
     <tr><td><input type="range" data-attr="rotate-y" value="0" min="0" max="359" /></td></tr>
     <tr><th>Rotate Around Z</th><tr>
     <tr><td><input type="range" data-attr="rotate-z" value="0" min="0" max="359" /></td></tr>
+    <tr><th>Wireframe</th><tr>
+    <tr><td><input type="checkbox" checked /></td></tr>
   </table>
 </body>
 </html>
