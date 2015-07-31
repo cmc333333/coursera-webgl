@@ -1,28 +1,3 @@
-
-var Sphere = function(numBasePoints) {
-  var verts = [],
-      wireframe = [];
-
-  for (var i = 0; i < numBasePoints; i++) {
-    var theta = 2 * Math.PI * i / numBasePoints;
-    for (var j = 0; j <= numBasePoints / 2; j++) {
-      var phi = 2 * Math.PI * j / numBasePoints;
-      verts.push(vec3(Math.sin(phi)*Math.cos(theta) / 4,
-                      Math.sin(phi)*Math.sin(theta) / 4,
-                      Math.cos(phi) / 4));
-      wireframe.push(verts.length - 1, verts.length);
-    }
-    wireframe[wireframe.length - 1] = 0;
-  }
-
-  return {
-    vertices: verts,
-    mode: "TRIANGLE_STRIP",
-    indices: [],
-    wireframe: wireframe
-  };
-};
-
 var App = {
   initGL: function() {
     canvas = document.getElementById("gl-canvas");
@@ -47,14 +22,14 @@ var App = {
   },
   cone: Shapes.Cone(12),
   cylinder: Shapes.Cylinder(12),
-  sphere: Sphere(12),
+  sphere: Shapes.Sphere(12),
   editing: null,
   render: function() {
     var transformLoc = this.gl.getUniformLocation(this.program, "transform"),
         transform = mult(rotate(this.rotateX(), 1, 0, 0),
                     mult(rotate(this.rotateY(), 0, 1, 0),
                          rotate(this.rotateZ(), 0, 0, 1)));
-    this.editing = this.cylinder;
+    this.editing = this.sphere;
 
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
