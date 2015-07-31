@@ -26,9 +26,11 @@ var App = {
   editing: null,
   render: function() {
     var transformLoc = this.gl.getUniformLocation(this.program, "transform"),
-        transform = mult(rotate(this.rotateX(), 1, 0, 0),
+        transform = mult(translate(this.positionX(), this.positionY(), this.positionZ()),
+                    mult(rotate(this.rotateX(), 1, 0, 0),
                     mult(rotate(this.rotateY(), 0, 1, 0),
-                         rotate(this.rotateZ(), 0, 0, 1)));
+                    mult(rotate(this.rotateZ(), 0, 0, 1),
+                         scale(this.skewX(), this.skewY(), this.skewZ())))));
     this.editing = this.sphere;
 
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -53,13 +55,29 @@ var App = {
                              this.gl.UNSIGNED_BYTE, 0);
       }
     }
+  },
+  onTabClick: function(ev) {
+    var $link = $(ev.target);
+    $('.tab-body').hide();
+    $('[data-tab-body=' + $link.data('tab') + ']').show();
+    $('.tab').removeClass("current");
+    $link.parent().addClass("current");
+    ev.preventDefault();
+    return false;
   }
 }
 
 $(function() {
-  var $rotateX = $('input[data-attr=rotate-x]'),
-      $rotateY = $('input[data-attr=rotate-y]'),
-      $rotateZ = $('input[data-attr=rotate-z]'),
+  var $rotateX = $('#rotate_x'),
+      $rotateY = $('#rotate_y'),
+      $rotateZ = $('#rotate_z'),
+      $positionX = $('#position_x'),
+      $positionY = $('#position_y'),
+      $positionZ = $('#position_z'),
+      $scale = $('#scale'),
+      $skewX = $('#skew_x'),
+      $skewY = $('#skew_y'),
+      $skewZ = $('#skew_z'),
       $wireframe = $('input[type=checkbox]');
 
   App.initGL();
@@ -67,10 +85,30 @@ $(function() {
   App.rotateY = function() { return $rotateY.val(); }
   App.rotateZ = function() { return $rotateZ.val(); }
   App.wireframe = function() { return $wireframe.is(':checked'); }
+  App.positionX = function() { return $positionX.val(); }
+  App.positionY = function() { return $positionY.val(); }
+  App.positionZ = function() { return $positionZ.val(); }
+  App.skewX = function() { return $skewX.val(); }
+  App.skewY = function() { return $skewY.val(); }
+  App.skewZ = function() { return $skewZ.val(); }
   App.render();
 
   $rotateX.on("input change", App.render.bind(App));
   $rotateY.on("input change", App.render.bind(App));
   $rotateZ.on("input change", App.render.bind(App));
   $wireframe.on("input change", App.render.bind(App));
+  $positionX.on("input change", App.render.bind(App));
+  $positionY.on("input change", App.render.bind(App));
+  $positionZ.on("input change", App.render.bind(App));
+  $skewX.on("input change", App.render.bind(App));
+  $skewY.on("input change", App.render.bind(App));
+  $skewZ.on("input change", App.render.bind(App));
+  $scale.on("input change", function() {
+    var val = $scale.val();
+    $skewX.val(val);
+    $skewY.val(val);
+    $skewZ.val(val);
+    App.render();
+  });
+  $('.tab a').click(App.onTabClick.bind(App)).first().click();
 });

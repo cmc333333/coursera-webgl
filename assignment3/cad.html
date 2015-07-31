@@ -36,16 +36,28 @@ main()
   canvas {
     border: 1px solid black;
   }
-  table {
+  #controls {
     display: inline-block;
     vertical-align: top;
+    width: 300px;
+  }
+  .tab {
+    display: inline-block;
+    border: 1px solid grey;
+    padding: 0.5em;
+  }
+  .tab.current {
+    border-color: black;
+    font-weight: bold;
+  }
+
+  .tab-body {
+    padding-top: 1em;
     text-align: center;
   }
-  .color {
-    border: 2px dotted grey;
-  }
-  .color.selected {
-    border: 2px solid red;
+  label {
+    display: block;
+    font-weight: bold;
   }
 </style>
 </head>   
@@ -54,16 +66,40 @@ main()
   <canvas id="gl-canvas" width="512" height="512">
   Oops ... your browser doesn't support the HTML5 canvas element
   </canvas>
-  <table>
-    <tr><th>Rotate Around X</th><tr>
-    <tr><td><input type="range" data-attr="rotate-x" value="0" min="0" max="359" /></td></tr>
-    <tr><th>Rotate Around Y</th><tr>
-    <tr><td><input type="range" data-attr="rotate-y" value="0" min="0" max="359" /></td></tr>
-    <tr><th>Rotate Around Z</th><tr>
-    <tr><td><input type="range" data-attr="rotate-z" value="0" min="0" max="359" /></td></tr>
-    <tr><th>Wireframe</th><tr>
-    <tr><td><input type="checkbox" checked /></td></tr>
-  </table>
+  <div id="controls">
+    <div>
+      <div class="tab"><a data-tab="rotation" href="#">Rotation</a></div>
+      <div class="tab"><a data-tab="position" href="#">Position</a></div>
+      <div class="tab"><a data-tab="scale" href="#">Scale/Skew</a></div>
+    </div>
+    <div data-tab-body="rotation" class="tab-body">
+      <label for="rotate_x">Rotate Around X</label>
+      <input type="range" id="rotate_x" value="0" min="0" max="359" />
+      <label for="rotate_y">Rotate Around Y</label>
+      <input type="range" id="rotate_y" value="0" min="0" max="359" />
+      <label for="rotate_z">Rotate Around Z</label>
+      <input type="range" id="rotate_z" value="0" min="0" max="359" />
+    </div>
+    <div data-tab-body="position" class="tab-body">
+      <label for="position_x">Position X</label>
+      <input type="range" id="position_x" value="0" min="-1" max="1" step="0.01" />
+      <label for="position_y">Position Y</label>
+      <input type="range" id="position_y" value="0" min="-1" max="1" step="0.01" />
+      <label for="position_z">Position Z</label>
+      <input type="range" id="position_z" value="0" min="-1" max="1" step="0.01" />
+    </div>
+    <div data-tab-body="scale" class="tab-body">
+      <label for="scale">Scale</label>
+      <input type="range" id="scale" value="1" min="0" max="4" step="0.05" />
+      <label for="skew_x">Skew X</label>
+      <input type="range" id="skew_x" value="1" min="0" max="4" step="0.05" />
+      <label for="skew_y">Skew Y</label>
+      <input type="range" id="skew_y" value="1" min="0" max="4" step="0.05" />
+      <label for="skew_z">Skew Z</label>
+      <input type="range" id="skew_z" value="1" min="0" max="4" step="0.05" />
+    </div>
+    <input type="checkbox" checked />
+  </div>
 </body>
 </html>
 
