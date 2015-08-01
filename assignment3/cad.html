@@ -66,11 +66,20 @@ main()
   }
 
   label {
-    display: block;
     font-weight: bold;
   }
   table {
     display: inline-block;
+  }
+  fieldset {
+    border: 0;
+    text-align: left;
+    display: inline-block;
+  }
+  fieldset legend {
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
   }
 
   .color {
@@ -78,6 +87,11 @@ main()
   }
   .color.selected {
     border: 2px solid red;
+  }
+
+  #place-container {
+    clear: both;
+    padding: 1em;
   }
 </style>
 </head>   
@@ -92,6 +106,7 @@ main()
       <div class="tab"><a data-tab="position" href="#">Position</a></div>
       <div class="tab"><a data-tab="scale" href="#">Scale/Skew</a></div>
       <div class="tab"><a data-tab="color" href="#">Color</a></div>
+      <div class="tab"><a data-tab="shape" href="#">Shape</a></div>
     </div>
     <div data-tab-body="rotation" class="tab-body">
       <label for="rotate_x">Rotate Around X</label>
@@ -156,7 +171,23 @@ main()
         </tr>
       </table>
     </div>
-    <input type="checkbox" checked />
+    <div data-tab-body="shape" class="tab-body">
+      <fieldset>
+        <legend>Shape</legend>
+        <div>
+          <input type="radio" name="shape" value="cone" checked> <label>Cone</label>
+        </div>
+        <div>
+          <input type="radio" name="shape" value="cylinder"> <label>Cylinder</label>
+        </div>
+        <div>
+          <input type="radio" name="shape" value="sphere"> <label>Sphere</label>
+        </div>
+      </fieldset>
+    </div>
+    <div id="place-container">
+      <input type="button" id="place" value="Place Object" />
+    </div>
   </div>
 </body>
 </html>
