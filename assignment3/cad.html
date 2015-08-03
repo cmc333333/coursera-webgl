@@ -66,7 +66,9 @@ main()
   }
 
   label {
+    display: block;
     font-weight: bold;
+    margin-top: 0.5em;
   }
   table {
     display: inline-block;
@@ -80,6 +82,9 @@ main()
     font-weight: bold;
     text-align: center;
     width: 100%;
+  }
+  fieldset label {
+    display: inline-block;
   }
 
   .color {
@@ -107,6 +112,7 @@ main()
       <div class="tab"><a data-tab="scale" href="#">Scale/Skew</a></div>
       <div class="tab"><a data-tab="color" href="#">Color</a></div>
       <div class="tab"><a data-tab="shape" href="#">Shape</a></div>
+      <div class="tab"><a data-tab="import-export" href="#">Import/Export</a></div>
     </div>
     <div data-tab-body="rotation" class="tab-body">
       <label for="rotate_x">Rotate Around X</label>
@@ -185,8 +191,16 @@ main()
         </div>
       </fieldset>
     </div>
+    <div data-tab-body="import-export" class="tab-body">
+      <label for="export">Export Objects</label>
+      <input type="button" id="export" value="Download JSON" />
+      <label for="import">Import Objects</label>
+      <input type="file" id="import" />
+    </div>
     <div id="place-container">
       <input type="button" id="place" value="Place Object" />
+      <label for="perspective">Use Perspective</label>
+      <input type="checkbox" id="perspective" />
     </div>
   </div>
 </body>

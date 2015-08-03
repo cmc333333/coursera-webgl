@@ -21,12 +21,14 @@ var App = {
     this.gl.vertexAttribPointer(vPosition, 3, this.gl.FLOAT, false, 0, 0);
     this.gl.enableVertexAttribArray(vPosition);
   },
-  cone: Shapes.Cone(12),
-  cylinder: Shapes.Cylinder(12),
-  sphere: Shapes.Sphere(12),
+  shapes: {
+    cone: Shapes.Cone(12),
+    cylinder: Shapes.Cylinder(12),
+    sphere: Shapes.Sphere(12)
+  },
   elements: [],
   current: function() {
-    return {
+    var result = {
       color: this.color(),
       shape: this.shape(),
       transform: 
@@ -36,21 +38,31 @@ var App = {
         mult(rotate(this.rotateZ(), 0, 0, 1),
              scale(this.skewX(), this.skewY(), this.skewZ())))))
     };
+    return result;
   },
   sendData: function(el, wireframe, transformLoc, colorLoc) {
+    var shape = this.shapes[el.shape];
+
     this.gl.uniform4f(colorLoc, el.color[0], el.color[1], el.color[2], 1);
-    this.gl.uniformMatrix4fv(transformLoc, false, flatten(el.transform));
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(el.shape.vertices),
+    if (this.perspective()) {
+      this.gl.uniformMatrix4fv(transformLoc, false, flatten(
+        mult(perspective(70, 1, 0.01, -2),
+        mult(lookAt([0, 0, 1.5], [0, 0, -1], [0, 1, 1.5]),
+             el.transform))));
+    } else {
+      this.gl.uniformMatrix4fv(transformLoc, false, flatten(el.transform));
+    };
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(shape.vertices),
                        this.gl.STATIC_DRAW);
     if (wireframe) {
       this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER,
-                         new Uint8Array(el.shape.wireframe),
+                         new Uint8Array(shape.wireframe),
                          this.gl.STATIC_DRAW);
-      this.gl.drawElements(this.gl.LINES, el.shape.wireframe.length,
+      this.gl.drawElements(this.gl.LINES, shape.wireframe.length,
                            this.gl.UNSIGNED_BYTE, 0);
     } else {
-      for (var i = 0; i < el.shape.faces.length; i++) {
-        var face = el.shape.faces[i];
+      for (var i = 0; i < shape.faces.length; i++) {
+        var face = shape.faces[i];
         this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER,
                            new Uint8Array(face.indices),
                            this.gl.STATIC_DRAW);
@@ -82,14 +94,33 @@ var App = {
     $link.parent().addClass("current");
     ev.preventDefault();
     return false;
+  },
+  exportData: function() {
+    var json = JSON.stringify(this.elements);
+    window.open("data:application/json," + json);
+  },
+  loadData: function(file) {
+    var reader = new FileReader();
+    reader.onload = function() {
+      var elements = JSON.parse(reader.result);
+      for (var i = 0; i < elements.length; i++) {
+        var element = elements[i];
+        element.transform.matrix = true;
+        App.elements.push(element);
+      };
+      App.render();
+    };
+    reader.readAsText(file);
   }
 }
 
 $(function() {
   var valOf = function(search) { return function() { return $(search).val(); }},
       $scale = $('#scale'),
-      $wireframe = $('input[type=checkbox]'),
-      $colors = $('input.color');
+      $perspective = $('#perspective'),
+      $colors = $('input.color'),
+      $import = $('#import'),
+      $export = $('#export');
 
   App.initGL();
   App.rotateX = valOf('#rotate_x');
@@ -101,8 +132,8 @@ $(function() {
   App.skewX = valOf('#skew_x');
   App.skewY = valOf('#skew_y');
   App.skewZ = valOf('#skew_z');
-  App.shape = function() { return App[$('input[name=shape]:checked').val()]; };
-  App.wireframe = function() { return $wireframe.is(':checked'); }
+  App.shape = function() { return $('input[name=shape]:checked').val(); };
+  App.perspective = function() { return $perspective.is(':checked'); }
   App.color = function() {
     var $selected = $colors.filter('.selected'),
         colorStr = $selected.css('background-color').slice(4, -1),
@@ -118,7 +149,7 @@ $(function() {
     App.render();
   });
   $('input[name=shape]').click(App.render.bind(App));
-  $wireframe.click(App.render.bind(App));
+  $perspective.click(App.render.bind(App));
   $('.tab a').click(App.onTabClick.bind(App)).first().click();
   $('#place').click(App.placeObject.bind(App));
   $colors.click(function() {
@@ -126,4 +157,13 @@ $(function() {
     $(this).addClass('selected');
     App.render();
   });
+  if (window.File && window.FileList && window.FileReader) {
+    $export.click(App.exportData.bind(App));
+    $import.change(function(ev) {
+      App.loadData(ev.target.files[0]);
+    });
+  } else {
+    $('[data-tab-body=import-export]').html(
+      "<strong>Sorry, your browser does not support import/export");
+  }
 });
