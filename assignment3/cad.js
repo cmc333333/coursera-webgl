@@ -22,9 +22,9 @@ var App = {
     this.gl.enableVertexAttribArray(vPosition);
   },
   shapes: {
-    cone: Shapes.Cone(12),
-    cylinder: Shapes.Cylinder(12),
-    sphere: Shapes.Sphere(12)
+    cone: Shapes.Cone(24),
+    cylinder: Shapes.Cylinder(24),
+    sphere: Shapes.Sphere(24)
   },
   elements: [],
   current: function() {
@@ -46,28 +46,31 @@ var App = {
     this.gl.uniform4f(colorLoc, el.color[0], el.color[1], el.color[2], 1);
     if (this.perspective()) {
       this.gl.uniformMatrix4fv(transformLoc, false, flatten(
-        mult(perspective(70, 1, 0.01, -2),
-        mult(lookAt([0, 0, 1.5], [0, 0, -1], [0, 1, 1.5]),
+        mult(perspective(80, 1, -4, 0.0),
+        mult(lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]),
              el.transform))));
     } else {
-      this.gl.uniformMatrix4fv(transformLoc, false, flatten(el.transform));
+      this.gl.uniformMatrix4fv(transformLoc, false, flatten(
+        mult(ortho(-1, 1, -1, 1, -2, 2),
+        mult(lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]),
+             el.transform))));
     };
     this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(shape.vertices),
                        this.gl.STATIC_DRAW);
     if (wireframe) {
       this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER,
-                         new Uint8Array(shape.wireframe),
+                         new Uint16Array(shape.wireframe),
                          this.gl.STATIC_DRAW);
       this.gl.drawElements(this.gl.LINES, shape.wireframe.length,
-                           this.gl.UNSIGNED_BYTE, 0);
+                           this.gl.UNSIGNED_SHORT, 0);
     } else {
       for (var i = 0; i < shape.faces.length; i++) {
         var face = shape.faces[i];
         this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER,
-                           new Uint8Array(face.indices),
+                           new Uint16Array(face.indices),
                            this.gl.STATIC_DRAW);
         this.gl.drawElements(this.gl[face.mode], face.indices.length,
-                             this.gl.UNSIGNED_BYTE, 0);
+                             this.gl.UNSIGNED_SHORT, 0);
       }
     }
   },
@@ -77,10 +80,10 @@ var App = {
         editing = this.current();
 
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-    this.sendData(editing, true, transformLoc, colorLoc);
     for (var i = 0; i < this.elements.length; i++) {
       this.sendData(this.elements[i], false, transformLoc, colorLoc);
     }
+    this.sendData(editing, true, transformLoc, colorLoc);
   },
   placeObject: function() {
     this.elements.push(this.current());

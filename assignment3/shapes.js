@@ -90,21 +90,26 @@ var Shapes = {
     var verts = [],
         strips = [],
         wireframe = [],
-        pointsPerLon = 1 + numBasePoints / 2;
-        totalPoints = numBasePoints * pointsPerLon;
+        phis = [],
+        increment = 2 * Math.PI / numBasePoints;
 
-    for (var i = 0; i < numBasePoints; i++) {
-      var theta = 2 * Math.PI * i / numBasePoints;
-          strip = {mode: "TRIANGLE_STRIP", indices: []};
-      for (var j = 0; j <= numBasePoints / 2; j++) {
-        var phi = 2 * Math.PI * j / numBasePoints,
+    for (var phi = 0; phi < Math.PI; phi += increment) {
+      phis.push(phi);
+    }
+    phis.push(Math.PI);   // always end with the top
+
+    for (var theta = 0; theta < 2 * Math.PI; theta += increment) {
+      var strip = {mode: "TRIANGLE_STRIP", indices: []};
+      for (var p = 0; p < phis.length; p++) {
+        var phi = phis[p],
             idx = verts.length,
-            nextIdx = (idx + pointsPerLon) % totalPoints;
+            nextIdx = (idx + phis.length) % (numBasePoints * phis.length);
         strip.indices.push(idx, nextIdx);
         verts.push(vec3(Math.sin(phi)*Math.cos(theta) / 4,
                         Math.sin(phi)*Math.sin(theta) / 4,
                         Math.cos(phi) / 4));
       }
+
       strips.push(strip);
       wireframe = wireframe.concat(this.strip2lines(strip.indices));
     }
