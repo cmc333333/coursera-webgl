@@ -46,14 +46,13 @@ var App = {
     this.gl.uniform4f(colorLoc, el.color[0], el.color[1], el.color[2], 1);
     if (this.perspective()) {
       this.gl.uniformMatrix4fv(transformLoc, false, flatten(
-        mult(perspective(80, 1, -4, 0.0),
-        mult(lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]),
+        mult(perspective(80, 1, 0.1, -1),
+        mult(translate(0, 0, -1.1),
              el.transform))));
     } else {
       this.gl.uniformMatrix4fv(transformLoc, false, flatten(
         mult(ortho(-1, 1, -1, 1, -2, 2),
-        mult(lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]),
-             el.transform))));
+             el.transform)));
     };
     this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(shape.vertices),
                        this.gl.STATIC_DRAW);
