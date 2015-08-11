@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<title>CAD</title>
+
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec3 vPosition;
+uniform mat4 transform;
+
+void
+main()
+{
+    gl_Position = transform * vec4(vPosition, 1.0);
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform vec4 ambientProduct;
+
+void
+main()
+{
+    gl_FragColor = ambientProduct;
+}
+</script>
+
+<script type="text/javascript" src="../dist/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="tabs.js"></script>
+<script type="text/javascript" src="sets_with.js"></script>
+<script type="text/javascript" src="shapes.js"></script>
+<script type="text/javascript" src="cad.js"></script>
+<style>
+
+  label {
+    display: block;
+    font-weight: bold;
+    margin-top: 0.5em;
+  }
+  table {
+    display: inline-block;
+  }
+  fieldset {
+    border: 0;
+    text-align: left;
+    display: inline-block;
+  }
+  fieldset legend {
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+  }
+  fieldset label {
+    display: inline-block;
+  }
+
+  .color {
+    border: 2px dotted grey;
+  }
+  .color.selected {
+    border: 2px solid red;
+  }
+
+  #place-container {
+    clear: both;
+    padding: 1em;
+  }
+
+
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  canvas {
+    border: 1px solid black;
+  }
+  #controls {
+    display: inline-block;
+    vertical-align: top;
+    width: 400px;
+    text-align: center;
+    margin-top: 1em;
+    border: 1px solid black;
+  }
+  .vertical-controls ul {
+    float: left;
+    list-style: none;
+    width: 40%;
+    padding: 0;
+    margin: 0 1em 0 0;
+  }
+  .vertical-controls li {
+    display: block;
+    border-right: solid black 1px;
+    border-bottom: solid black 1px;
+    padding: 0.5em 0;
+  }
+  .vertical-controls li:first-child {
+    border-top: solid black 1px;
+  }
+
+  .horizontal-controls ul {
+    list-style: none;
+    width: 100%;
+    padding: 0;
+    margin: 0 0 1em 0;
+  }
+  .horizontal-controls li {
+    display: inline-block;
+    border-left: solid black 1px;
+    border-bottom: solid black 1px;
+    padding: 0.5em 0;
+    width: 33%;
+  }
+  .horizontal-controls li:first-child {
+    border-left: none;
+  }
+  .horizontal-controls li a.selected, .vertical-controls li a.selected {
+    font-weight: bold;
+  }
+  .tab-body {
+    padding-left: 40%;
+    padding-top: 1em;
+  }
+</style>
+</head>   
+
+<body>
+  <canvas id="gl-canvas" width="512" height="512">
+  Oops ... your browser doesn't support the HTML5 canvas element
+  </canvas>
+  <div id="controls">
+    <div class="horizontal-controls">
+      <ul data-controls-for="top">
+        <li><a href="#" data-tab="objects">Objects</a></li><li><a
+               href="#" data-tab="lights">Lights</a></li><li><a
+               href="#" data-tab="perspective">Perspective</a></li>
+      </ul>
+    </div>
+
+    <div data-tab="top:objects">
+      <div class="vertical-controls">
+        <ul data-controls-for="object">
+          <li><a href="#" data-tab="rotation">Rotation</a></li>
+          <li><a href="#" data-tab="position">Position</a></li>
+          <li><a href="#" data-tab="scale">Scale/Skew</a></li>
+          <li><a href="#" data-tab="color">Color</a></li>
+          <li><a href="#" data-tab="shape">Shape</a></li>
+          <li><a href="#" data-tab="import-export">Import/Export</a></li>
+        </ul>
+      </div>
+
+      <div data-tab="object:rotation" class="tab-body">
+        <label for="rotate_x">Rotate Around X</label>
+        <input type="range" id="rotate_x" value="0" min="0" max="359" />
+        <label for="rotate_y">Rotate Around Y</label>
+        <input type="range" id="rotate_y" value="0" min="0" max="359" />
+        <label for="rotate_z">Rotate Around Z</label>
+        <input type="range" id="rotate_z" value="0" min="0" max="359" />
+      </div>
+      <div data-tab="object:position" class="tab-body">
+        <label for="position_x">Position X</label>
+        <input type="range" id="position_x" value="0" min="-1" max="1" step="0.01" />
+        <label for="position_y">Position Y</label>
+        <input type="range" id="position_y" value="0" min="-1" max="1" step="0.01" />
+        <label for="position_z">Position Z</label>
+        <input type="range" id="position_z" value="0" min="-1" max="1" step="0.01" />
+      </div>
+      <div data-tab="object:scale" class="tab-body">
+        <label for="scale">Scale</label>
+        <input type="range" id="scale" value="1" min="0" max="4" step="0.05" 
+               data-sets-input="skew_x,skew_y,skew_z" />
+        <label for="skew_x">Skew X</label>
+        <input type="range" id="skew_x" value="1" min="0" max="4" step="0.05" />
+        <label for="skew_y">Skew Y</label>
+        <input type="range" id="skew_y" value="1" min="0" max="4" step="0.05" />
+        <label for="skew_z">Skew Z</label>
+        <input type="range" id="skew_z" value="1" min="0" max="4" step="0.05" />
+      </div>
+      <div data-tab="object:color" class="tab-body">
+        <table>
+          <tr><th colspan="2">Color Selection</th><tr>
+          <tr>
+            <td><input type="button" class="color" style='background-color: black;' /></td>
+            <td><input type="button" class="color" style='background-color: gray;' /></td>
+          </tr>
+          <tr>
+            <td><input type="button" class="color" style='background-color: maroon;' /></td>
+            <td><input type="button" class="color" style='background-color: red;' /></td>
+          </tr>
+          <tr>
+            <td><input type="button" class="color" style='background-color: green;' /></td>
+            <td><input type="button" class="color" style='background-color: lime;' /></td>
+          </tr>
+          <tr>
+            <td><input type="button" class="color" style='background-color: olive;' /></td>
+            <td><input type="button" class="color" style='background-color: yellow;' /></td>
+          </tr>
+          <tr>
+            <td><input type="button" class="color" style='background-color: navy;' /></td>
+            <td><input type="button" class="color" style='background-color: blue;' /></td>
+          </tr>
+          <tr>
+            <td><input type="button" class="color" style='background-color: purple;' /></td>
+            <td><input type="button" class="color" style='background-color: fuchsia;' /></td>
+          </tr>
+          <tr>
+            <td><input type="button" class="color" style='background-color: teal;' /></td>
+            <td><input type="button" class="color" style='background-color: aqua;' /></td>
+          </tr>
+          <tr>
+            <td><input type="button" class="color" style='background-color: silver;' /></td>
+            <td><input type="button" class="color selected" style='background-color: white;' /></td>
+          </tr>
+        </table>
+      </div>
+      <div data-tab="object:shape" class="tab-body">
+        <fieldset>
+          <legend>Shape</legend>
+          <div>
+            <input type="radio" name="shape" value="cone" checked> <label>Cone</label>
+          </div>
+          <div>
+            <input type="radio" name="shape" value="cylinder"> <label>Cylinder</label>
+          </div>
+          <div>
+            <input type="radio" name="shape" value="sphere"> <label>Sphere</label>
+          </div>
+        </fieldset>
+      </div>
+      <div data-tab="object:import-export" class="tab-body">
+        <label for="export">Export Objects</label>
+        <input type="button" id="export" value="Download JSON" />
+        <label for="import">Import Objects</label>
+        <input type="file" id="import" />
+      </div>
+      <div id="place-container">
+        <input type="button" id="place" value="Place Object" />
+      </div>
+    </div>
+
+    <div data-tab="top:lights">
+      <div class="vertical-controls">
+        <ul data-controls-for="light">
+          <li><a href="#" data-tab="ambient">Ambient</a></li>
+        </ul>
+      </div>
+
+      <div data-tab="light:ambient" class="tab-body">
+        <label for="ambient">Ambient White</label>
+        <input type="range" id="ambient" value="255" min="50" max="255"
+               data-sets-input="ambient_r,ambient_g,ambient_b" />
+        <label for="ambient_r">Ambient Red</label>
+        <input type="range" id="ambient_r" value="255" min="50" max="255" />
+        <label for="ambient_g">Ambient Green</label>
+        <input type="range" id="ambient_g" value="255" min="50" max="255" />
+        <label for="ambient_b">Ambient Blue</label>
+        <input type="range" id="ambient_b" value="255" min="50" max="255" />
+      </div>
+    </div>
+
+    <div data-tab="top:perspective">
+      <label for="perspective">Use Perspective</label>
+      <input type="checkbox" id="perspective" />
+    </div>
+  </div>
+</body>
+</html>
+
