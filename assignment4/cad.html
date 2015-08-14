@@ -6,25 +6,58 @@
 
 
 <script id="vertex-shader" type="x-shader/x-vertex">
-attribute vec3 vPosition;
-uniform mat4 transform;
+const int MAX_LIGHTS = 5;
 
-void
-main()
+attribute vec4 vPosition, vNormal;
+varying vec3 N, E;
+varying vec3 L[MAX_LIGHTS];
+uniform mat4 modelViewMatrix, projectionMatrix;
+uniform vec4 lightPosition[MAX_LIGHTS];
+
+void main()
 {
-    gl_Position = transform * vec4(vPosition, 1.0);
+    vec3 pos = -(modelViewMatrix * vPosition).xyz;
+
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+      L[i] = normalize(lightPosition[i].xyz - pos);
+    }
+    E = -pos;
+    N = normalize((modelViewMatrix * vNormal).xyz);
+    gl_Position = projectionMatrix * modelViewMatrix * vPosition;
 }
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
+const int MAX_LIGHTS = 5;
 
-uniform vec4 ambientProduct;
+uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+uniform float shininess;
+varying vec3 N, E;
+varying vec3 L[MAX_LIGHTS];
 
-void
-main()
+void main()
 {
-    gl_FragColor = ambientProduct;
+    vec4 fColor;
+    vec4 diffuse[MAX_LIGHTS], specular[MAX_LIGHTS];
+
+    float Kd, Ks;
+    vec3 H;
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+      H = normalize(L[i] + E);
+      Kd = max(dot(L[i], N), 0.0);
+      diffuse[i] = Kd*diffuseProduct;
+
+      Ks = pow(max(dot(N, H), 0.0), shininess);
+      specular[i] = Ks * specularProduct;
+      if (dot(L[i], N) < 0.0)
+        specular[i] = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+    fColor = ambientProduct + diffuse[0] + specular[0] + diffuse[1] +
+    specular[1];
+    fColor = fColor / 2.0;
+    fColor.a = 1.0;
+    gl_FragColor = fColor;
 }
 </script>
 

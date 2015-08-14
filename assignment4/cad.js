@@ -13,14 +13,119 @@ var App = {
     this.program = initShaders(this.gl, "vertex-shader", "fragment-shader");
     this.gl.useProgram(this.program);
 
-    // setup buffers
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.gl.createBuffer());
-
-    var vPosition = this.gl.getAttribLocation(this.program, "vPosition");
-    this.gl.vertexAttribPointer(vPosition, 3, this.gl.FLOAT, false, 0, 0);
-    this.gl.enableVertexAttribArray(vPosition);
+    this.setupLocs();
   },
+  setupLocs: function() {
+    this.locs.vNormal = this.gl.getAttribLocation(this.program, "vNormal");
+    this.locs.vPosition = this.gl.getAttribLocation(this.program, "vPosition");
+    this.locs.ambientProduct = this.gl.getUniformLocation(this.program, "ambientProduct");
+    this.locs.diffuseProduct = this.gl.getUniformLocation(this.program, "diffuseProduct");
+    this.locs.specularProduct = this.gl.getUniformLocation(this.program, "specularProduct");
+    this.locs.lightPosition = this.gl.getUniformLocation(this.program, "lightPosition");
+    this.locs.shininess = this.gl.getUniformLocation(this.program, "shininess");
+    this.locs.projectionMatrix = this.gl.getUniformLocation(this.program, "projectionMatrix");
+
+
+
+var pointsArray = [];
+var normalsArray = [];
+
+var vertices = [
+        vec4( -0.5, -0.5,  0.5, 1.0 ),
+        vec4( -0.5,  0.5,  0.5, 1.0 ),
+        vec4( 0.5,  0.5,  0.5, 1.0 ),
+        vec4( 0.5, -0.5,  0.5, 1.0 ),
+        vec4( -0.5, -0.5, -0.5, 1.0 ),
+        vec4( -0.5,  0.5, -0.5, 1.0 ),
+        vec4( 0.5,  0.5, -0.5, 1.0 ),
+        vec4( 0.5, -0.5, -0.5, 1.0 )
+    ];
+
+var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
+var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+
+var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
+var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
+var materialSpecular = vec4( 1.0, 0.8, 0.0, 1.0 );
+var materialShininess = 100.0;
+
+//var materialAmbient = vec4( 0, 0, 0, 1.0 );
+//var materialDiffuse = vec4( 0, 0, 0, 1.0);
+//var materialSpecular = vec4( 0, 0, 0, 1.0 );
+
+var viewerPos;
+
+function quad(a, b, c, d) {
+
+     var t1 = subtract(vertices[b], vertices[a]);
+     var t2 = subtract(vertices[c], vertices[b]);
+     var normal = cross(t1, t2);
+     var normal = vec3(normal);
+     normal = normalize(normal);
+
+     pointsArray.push(vertices[a]); 
+     normalsArray.push(normal); 
+     pointsArray.push(vertices[b]); 
+     normalsArray.push(normal); 
+     pointsArray.push(vertices[c]); 
+     normalsArray.push(normal);   
+     pointsArray.push(vertices[a]);  
+     normalsArray.push(normal); 
+     pointsArray.push(vertices[c]); 
+     normalsArray.push(normal); 
+     pointsArray.push(vertices[d]); 
+     normalsArray.push(normal);    
+}
+
+
+function colorCube()
+{
+    quad( 1, 0, 3, 2 );
+    quad( 2, 3, 7, 6 );
+    quad( 3, 0, 4, 7 );
+    quad( 6, 5, 1, 2 );
+    quad( 4, 5, 6, 7 );
+    quad( 5, 4, 0, 1 );
+}
+    colorCube();
+
+    var nBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer( this.gl.ARRAY_BUFFER, nBuffer );
+    this.gl.bufferData( this.gl.ARRAY_BUFFER, flatten(normalsArray), this.gl.STATIC_DRAW );
+    
+    this.gl.vertexAttribPointer(this.locs.vNormal, 3, this.gl.FLOAT, false, 0, 0 );
+    this.gl.enableVertexAttribArray(this.locs.vNormal );
+
+    var vBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer( this.gl.ARRAY_BUFFER, vBuffer );
+    this.gl.bufferData( this.gl.ARRAY_BUFFER, flatten(pointsArray), this.gl.STATIC_DRAW );
+    
+    this.gl.vertexAttribPointer(this.vPosition, 4, this.gl.FLOAT, false, 0, 0);
+    this.gl.enableVertexAttribArray(this.vPosition);
+
+    viewerPos = vec3(0.0, 0.0, -20.0 );
+
+    var projection = ortho(-1, 1, -1, 1, -100, 100);
+    
+    ambientProduct = mult(lightAmbient, materialAmbient);
+    diffuseProduct = mult(lightDiffuse, materialDiffuse);
+    specularProduct = mult(lightSpecular, materialSpecular);
+
+    this.gl.uniform4fv(this.locs.ambientProduct, flatten(ambientProduct));
+    this.gl.uniform4fv(this.locs.diffuseProduct, flatten(diffuseProduct) );
+    this.gl.uniform4fv(this.locs.specularProduct, flatten(specularProduct) );	
+    this.gl.uniform4fv(this.locs.lightPosition, 
+        [1, 1, 1, 0,
+         -1, 1, 1, 0]);
+       
+    this.gl.uniform1f(this.locs.shininess, materialShininess);
+    
+    this.gl.uniformMatrix4fv(this.locs.projectionMatrix, false, flatten(projection));
+    
+  },
+  locs: {},
   shapes: {
     cone: Shapes.Cone(24),
     cylinder: Shapes.Cylinder(24),
@@ -77,6 +182,22 @@ var App = {
     }
   },
   render: function() {
+    this.gl.clear( this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+            
+    var modelView = mat4();
+    var modelView = mult(rotate(this.rotateX(), 1, 0, 0), modelView);
+    
+    this.gl.uniformMatrix4fv( this.gl.getUniformLocation(this.program,
+            "modelViewMatrix"), false, flatten(modelView) );
+    var now = new Date().getTime() / 500;
+    this.gl.uniform4fv(this.locs.lightPosition,
+                       [Math.sin(now), Math.cos(now), this.positionZ(), 0.0]);
+
+    this.gl.drawArrays( this.gl.TRIANGLES, 0, 32);
+    requestAnimFrame(App.render.bind(App));
+
+  },
+  render_old: function() {
     var transformLoc = this.gl.getUniformLocation(this.program, "transform"),
         ambientLoc = this.gl.getUniformLocation(this.program, "ambientProduct");
         editing = this.current();
@@ -89,7 +210,7 @@ var App = {
   },
   placeObject: function() {
     this.elements.push(this.current());
-    this.render();
+    //this.render();
   },
   exportData: function() {
     var json = JSON.stringify(this.elements);
@@ -104,7 +225,7 @@ var App = {
         element.transform.matrix = true;
         App.elements.push(element);
       };
-      App.render();
+      //App.render();
     };
     reader.readAsText(file);
   }
@@ -141,14 +262,16 @@ $(function() {
   App.ambientB = function() { return parseInt($('#ambient_b').val())/255; };
   App.render();
 
+  /*
   $('input[type=range]').on("input change", App.render.bind(App));
   $('input[name=shape]').click(App.render.bind(App));
   $perspective.click(App.render.bind(App));
+  */
   $('#place').click(App.placeObject.bind(App));
   $colors.click(function() {
     $colors.removeClass('selected');
     $(this).addClass('selected');
-    App.render();
+    //App.render();
   });
   if (window.File && window.FileList && window.FileReader) {
     $export.click(App.exportData.bind(App));
