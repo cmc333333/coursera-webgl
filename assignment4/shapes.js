@@ -12,6 +12,7 @@ var Shapes = {
     for (var theta = 0; theta < 2 * Math.PI; theta += increment) {
       thetas.push(theta);
     }
+    thetas.push(2*Math.PI);
 
     for (t = 0; t < thetas.length; t++) {
       theta = thetas[t];
@@ -29,7 +30,8 @@ var Shapes = {
 
     return {
       triangles: triangles,
-      normals: normals
+      normals: normals,
+      size: triangles.length
     };
   },
   Cylinder: function(numBasePoints) {
@@ -45,6 +47,7 @@ var Shapes = {
     for (var theta = 0; theta < 2 * Math.PI; theta += increment) {
       thetas.push(theta);
     }
+    thetas.push(2*Math.PI);
 
     for (t = 0; t < thetas.length; t++) {
       theta = thetas[t];
@@ -73,7 +76,8 @@ var Shapes = {
 
     return {
       triangles: triangles,
-      normals: normals
+      normals: normals,
+      size: triangles.length
     };
   },
   Sphere: function(numBasePoints) {
@@ -89,6 +93,7 @@ var Shapes = {
     for (theta = 0; theta < 2 * Math.PI; theta += increment) {
       thetas.push(theta);
     }
+    thetas.push(2*Math.PI);
     for (phi = 0; phi < Math.PI; phi += increment) {
       phis.push(phi);
     }
@@ -120,7 +125,8 @@ var Shapes = {
 
     return {
       triangles: triangles,
-      normals: triangles
+      normals: triangles,
+      size: triangles.length
     };
   }
 };

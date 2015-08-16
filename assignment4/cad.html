@@ -12,14 +12,14 @@ attribute vec4 vPosition, vNormal;
 varying vec3 N, E;
 varying vec3 L[MAX_LIGHTS];
 uniform mat4 modelViewMatrix, projectionMatrix;
-uniform vec4 lightPosition[MAX_LIGHTS];
+uniform vec3 lightPosition[MAX_LIGHTS];
 
 void main()
 {
     vec3 pos = -(modelViewMatrix * vPosition).xyz;
 
     for (int i = 0; i < MAX_LIGHTS; i++) {
-      L[i] = normalize(lightPosition[i].xyz - pos);
+      L[i] = normalize(lightPosition[i] - pos);
     }
     E = -pos;
     N = normalize((modelViewMatrix * vNormal).xyz);

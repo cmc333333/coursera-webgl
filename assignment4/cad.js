@@ -24,24 +24,13 @@ var App = {
     this.locs.lightPosition = this.gl.getUniformLocation(this.program, "lightPosition");
     this.locs.shininess = this.gl.getUniformLocation(this.program, "shininess");
     this.locs.projectionMatrix = this.gl.getUniformLocation(this.program, "projectionMatrix");
+    this.locs.modelViewMatrix = this.gl.getUniformLocation(this.program, "modelViewMatrix");
 
 
 
 var pointsArray = [];
 var normalsArray = [];
 
-var vertices = [
-        vec4( -0.5, -0.5,  0.5, 1.0 ),
-        vec4( -0.5,  0.5,  0.5, 1.0 ),
-        vec4( 0.5,  0.5,  0.5, 1.0 ),
-        vec4( 0.5, -0.5,  0.5, 1.0 ),
-        vec4( -0.5, -0.5, -0.5, 1.0 ),
-        vec4( -0.5,  0.5, -0.5, 1.0 ),
-        vec4( 0.5,  0.5, -0.5, 1.0 ),
-        vec4( 0.5, -0.5, -0.5, 1.0 )
-    ];
-
-var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
 var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
@@ -51,44 +40,17 @@ var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
 var materialSpecular = vec4( 1.0, 0.8, 0.0, 1.0 );
 var materialShininess = 100.0;
 
-//var materialAmbient = vec4( 0, 0, 0, 1.0 );
-//var materialDiffuse = vec4( 0, 0, 0, 1.0);
-//var materialSpecular = vec4( 0, 0, 0, 1.0 );
-
 var viewerPos;
 
-function quad(a, b, c, d) {
-
-     var t1 = subtract(vertices[b], vertices[a]);
-     var t2 = subtract(vertices[c], vertices[b]);
-     var normal = cross(t1, t2);
-     normal = vec3(normal);
-     normal = normalize(normal);
-
-     pointsArray.push(vertices[a]); 
-     pointsArray.push(vertices[b]); 
-     pointsArray.push(vertices[c]); 
-     pointsArray.push(vertices[a]);  
-     pointsArray.push(vertices[c]); 
-     pointsArray.push(vertices[d]); 
-     for (var i = 0; i < 6; i++) {
-       normalsArray.push(normal);    
-     }
-}
-
-
-function colorCube()
-{
-    quad( 1, 0, 3, 2 );
-    quad( 2, 3, 7, 6 );
-    quad( 3, 0, 4, 7 );
-    quad( 6, 5, 1, 2 );
-    quad( 4, 5, 6, 7 );
-    quad( 5, 4, 0, 1 );
-}
-    colorCube();
-    normalsArray = App.shapes.cone.normals;
-    pointsArray = App.shapes.cone.triangles;
+    normalsArray = App.shapes.cone.normals.concat(
+                   App.shapes.cylinder.normals.concat(
+                   App.shapes.sphere.normals));
+    pointsArray = App.shapes.cone.triangles.concat(
+                  App.shapes.cylinder.triangles.concat(
+                  App.shapes.sphere.triangles));
+    this.shapes.cone.offset = 0;
+    this.shapes.cylinder.offset = this.shapes.cone.size;
+    this.shapes.sphere.offset = this.shapes.cone.size + this.shapes.cylinder.size;
 
     var nBuffer = this.gl.createBuffer();
     this.gl.bindBuffer( this.gl.ARRAY_BUFFER, nBuffer );
@@ -115,9 +77,6 @@ function colorCube()
     this.gl.uniform4fv(this.locs.ambientProduct, flatten(ambientProduct));
     this.gl.uniform4fv(this.locs.diffuseProduct, flatten(diffuseProduct) );
     this.gl.uniform4fv(this.locs.specularProduct, flatten(specularProduct) );	
-    this.gl.uniform4fv(this.locs.lightPosition, 
-        [1, 1, 1, 0,
-         -1, 1, 1, 0]);
        
     this.gl.uniform1f(this.locs.shininess, materialShininess);
     
@@ -126,12 +85,20 @@ function colorCube()
   },
   locs: {},
   shapes: {
-    cone: Shapes.Cone(24),
-    cylinder: Shapes.Cylinder(24),
-    sphere: Shapes.Sphere(24)
+    cone: Shapes.Cone(8),
+    cylinder: Shapes.Cylinder(8),
+    sphere: Shapes.Sphere(8)
   },
-  elements: [],
+  models: [
+    {shape: "cone", mvMatrix: mult(translate(-0.5, 0, 0), mat4())},
+    {shape: "sphere", mvMatrix: mult(translate(0.5, 0, 0), mat4())}
+  ],
   current: function() {
+    return {
+      shape: "cone",
+      mvMatrix: mult(rotate(this.rotateX(), 1, 0, 0), mat4())
+    };
+    /*
     var result = {
       color: this.color(),
       shape: this.shape(),
@@ -143,6 +110,14 @@ function colorCube()
              scale(this.skewX(), this.skewY(), this.skewZ())))))
     };
     return result;
+    */
+  },
+  lights: function() {
+    var now = new Date().getTime() / 500;
+    return [
+      [Math.sin(now), Math.cos(now), this.positionZ()],
+      [-1, 1, 1]
+    ];
   },
   sendData: function(el, wireframe, transformLoc, ambientLoc) {
     var shape = this.shapes[el.shape],
@@ -183,17 +158,26 @@ function colorCube()
   render: function() {
     this.gl.clear( this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
             
-    var modelView = mat4();
-    modelView = mult(rotate(this.rotateX(), 1, 0, 0), modelView);
-    
-    this.gl.uniformMatrix4fv( this.gl.getUniformLocation(this.program,
-            "modelViewMatrix"), false, flatten(modelView) );
-    var now = new Date().getTime() / 500;
-    this.gl.uniform4fv(this.locs.lightPosition,
-                       [Math.sin(now), Math.cos(now), this.positionZ(), 0.0]);
-
-    this.gl.drawArrays( this.gl.TRIANGLES, 0, this.shapes.cone.triangles.length);
+    var lights = this.lights();
+    this.gl.uniform3fv(this.locs.lightPosition, flatten(lights));
+    for (var i = 0; i < this.models.length; i++) {
+      this.renderModel(this.models[i]);
+    }
+    for (i = 0; i < lights.length; i++) {
+      var light = lights[i];
+      this.renderModel({shape: "sphere",
+                        mvMatrix: mult(
+                          translate(light[0], light[1], light[2]),
+                          scale(0.25, 0.25, 0.25))});
+    }
+    this.renderModel(this.current());
     requestAnimFrame(App.render.bind(App));
+
+  },
+  renderModel: function(model) {
+    var shape = this.shapes[model.shape];
+    this.gl.uniformMatrix4fv(this.locs.modelViewMatrix, false, flatten(model.mvMatrix));
+    this.gl.drawArrays(this.gl.TRIANGLES, shape.offset, shape.size);
 
   },
   render_old: function() {
