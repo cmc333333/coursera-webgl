@@ -62,7 +62,7 @@ function quad(a, b, c, d) {
      var t1 = subtract(vertices[b], vertices[a]);
      var t2 = subtract(vertices[c], vertices[b]);
      var normal = cross(t1, t2);
-     var normal = vec3(normal);
+     normal = vec3(normal);
      normal = normalize(normal);
 
      pointsArray.push(vertices[a]); 
@@ -87,8 +87,8 @@ function colorCube()
     quad( 5, 4, 0, 1 );
 }
     colorCube();
-    normalsArray = App.shapes.sphere.normals;
-    pointsArray = App.shapes.sphere.triangles;
+    normalsArray = App.shapes.cylinder.normals;
+    pointsArray = App.shapes.cylinder.triangles;
 
     var nBuffer = this.gl.createBuffer();
     this.gl.bindBuffer( this.gl.ARRAY_BUFFER, nBuffer );
@@ -160,7 +160,7 @@ function colorCube()
       this.gl.uniformMatrix4fv(transformLoc, false, flatten(
         mult(ortho(-1, 1, -1, 1, -2, 2),
              el.transform)));
-    };
+    }
     this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(shape.vertices),
                        this.gl.STATIC_DRAW);
     if (wireframe) {
@@ -184,7 +184,7 @@ function colorCube()
     this.gl.clear( this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
             
     var modelView = mat4();
-    var modelView = mult(rotate(this.rotateX(), 1, 0, 0), modelView);
+    modelView = mult(rotate(this.rotateX(), 1, 0, 0), modelView);
     
     this.gl.uniformMatrix4fv( this.gl.getUniformLocation(this.program,
             "modelViewMatrix"), false, flatten(modelView) );
@@ -192,7 +192,7 @@ function colorCube()
     this.gl.uniform4fv(this.locs.lightPosition,
                        [Math.sin(now), Math.cos(now), this.positionZ(), 0.0]);
 
-    this.gl.drawArrays( this.gl.TRIANGLES, 0, this.shapes.sphere.triangles.length);
+    this.gl.drawArrays( this.gl.TRIANGLES, 0, this.shapes.cylinder.triangles.length);
     requestAnimFrame(App.render.bind(App));
 
   },
@@ -223,15 +223,15 @@ function colorCube()
         var element = elements[i];
         element.transform.matrix = true;
         App.elements.push(element);
-      };
+      }
       //App.render();
     };
     reader.readAsText(file);
   }
-}
+};
 
 $(function() {
-  var valOf = function(search) { return function() { return $(search).val(); }},
+  var valOf = function(search) { return function() { return $(search).val(); };},
       $perspective = $('#perspective'),
       $colors = $('input.color'),
       $import = $('#import'),
@@ -248,7 +248,7 @@ $(function() {
   App.skewY = valOf('#skew_y');
   App.skewZ = valOf('#skew_z');
   App.shape = function() { return $('input[name=shape]:checked').val(); };
-  App.perspective = function() { return $perspective.is(':checked'); }
+  App.perspective = function() { return $perspective.is(':checked'); };
   App.color = function() {
     var $selected = $colors.filter('.selected'),
         colorStr = $selected.css('background-color').slice(4, -1),

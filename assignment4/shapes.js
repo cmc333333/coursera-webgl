@@ -49,41 +49,46 @@ var Shapes = {
   },
   Cylinder: function(numBasePoints) {
     var verts = [],
-        topFace = [],
-        bottomFace = [],
-        middle = [];
+        bottom = vec3(0, -0.25, 0),
+        top = vec3(0, 0.25, 0),
+        triangles = [],
+        normals = [],
+        thetas = [],
+        increment = 2 * Math.PI / numBasePoints,
+        t;
 
-    // center point in both bases
-    verts.push(vec3(0, 0.25, 0), vec3(0, -0.25, 0));
-    topFace.push(0);
-    bottomFace.push(1);
-
-    for (var i = 0; i < numBasePoints; i++) {
-      var theta = 2 * Math.PI * i / numBasePoints,
-          topIdx = 2*i + 2,
-          bottomIdx = topIdx + 1;
-
-      verts.push(vec3(Math.cos(theta)/4, 0.25, Math.sin(theta)/4));
-      verts.push(vec3(Math.cos(theta)/4, -0.25, Math.sin(theta)/4));
-
-      topFace.push(topIdx);
-      bottomFace.push(bottomIdx);
-      middle.push(bottomIdx, topIdx);
+    for (var theta = 0; theta < 2 * Math.PI; theta += increment) {
+      thetas.push(theta);
     }
 
-    // Wrap around
-    topFace.push(2);
-    bottomFace.push(3);
-    middle.push(3, 2);
+    for (t = 0; t < thetas.length; t++) {
+      theta = thetas[t];
+      verts.push(vec3(Math.cos(theta)/4, -0.25, Math.sin(theta)/4),
+                 vec3(Math.cos(theta)/4, 0.25, Math.sin(theta)/4));
+    }
+
+    for (t = 1; t < thetas.length; t++) {
+      var llIdx = 2*t,
+          ulIdx = llIdx + 1,
+          lrIdx = llIdx - 2,
+          urIdx = llIdx - 1;
+      triangles.push(verts[urIdx], verts[llIdx], verts[lrIdx]);
+      normals.push(vec3(verts[urIdx][0], 0, verts[urIdx][2]),
+                   vec3(verts[llIdx][0], 0, verts[llIdx][2]),
+                   vec3(verts[lrIdx][0], 0, verts[lrIdx][2]));
+      triangles.push(verts[urIdx], verts[ulIdx], verts[llIdx]);
+      normals.push(vec3(verts[urIdx][0], 0, verts[urIdx][2]),
+                   vec3(verts[ulIdx][0], 0, verts[ulIdx][2]),
+                   vec3(verts[llIdx][0], 0, verts[llIdx][2]));
+      triangles.push(bottom, verts[lrIdx], verts[llIdx]);
+      normals.push(vec3(0, -0.25, 0), vec3(0, -0.25, 0), vec3(0, -0.25, 0));
+      triangles.push(top, verts[ulIdx], verts[urIdx]);
+      normals.push(vec3(0, 0.25, 0), vec3(0, 0.25, 0), vec3(0, 0.25, 0));
+    }
 
     return {
-      vertices: verts,
-      faces: [{mode: "TRIANGLE_FAN", indices: topFace},
-              {mode: "TRIANGLE_FAN", indices: bottomFace},
-              {mode: "TRIANGLE_STRIP", indices: middle}],
-      wireframe: [].concat(this.fan2lines(topFace))
-                   .concat(this.fan2lines(bottomFace))
-                   .concat(this.strip2lines(middle))
+      triangles: triangles,
+      normals: normals
     };
   },
   Sphere: function(numBasePoints) {
@@ -93,30 +98,31 @@ var Shapes = {
         triangles = [],
         phis = [],
         thetas = [],
-        increment = 2 * Math.PI / numBasePoints;
+        increment = 2 * Math.PI / numBasePoints,
+        theta, phi, t, p;
 
-    for (var theta = 0; theta < 2 * Math.PI; theta += increment) {
+    for (theta = 0; theta < 2 * Math.PI; theta += increment) {
       thetas.push(theta);
     }
-    for (var phi = 0; phi < Math.PI; phi += increment) {
+    for (phi = 0; phi < Math.PI; phi += increment) {
       phis.push(phi);
     }
     phis.push(Math.PI);
 
-    for (var t = 0; t < thetas.length; t++) {
-      var theta = thetas[t];
-      for (var p = 0; p < phis.length; p++) {
-        var phi = phis[p];
+    for (t = 0; t < thetas.length; t++) {
+      theta = thetas[t];
+      for (p = 0; p < phis.length; p++) {
+        phi = phis[p];
         verts.push(vec3(Math.sin(phi)*Math.cos(theta) / 4,
                         Math.sin(phi)*Math.sin(theta) / 4,
                         Math.cos(phi) / 4));
       }
     }
     // strips
-    for (var t=1; t < thetas.length; t++) {
+    for (t=1; t < thetas.length; t++) {
       var colIdx = t*phis.length,
           lastColIdx = colIdx - phis.length;
-      for (var p=1; p < phis.length; p++) {
+      for (p=1; p < phis.length; p++) {
         var urIdx = colIdx + p,
             lrIdx = urIdx - 1,
             ulIdx = lastColIdx + p,
@@ -132,4 +138,4 @@ var Shapes = {
       normals: triangles
     };
   }
-}
+};
