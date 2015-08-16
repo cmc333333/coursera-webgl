@@ -18,9 +18,10 @@ var App = {
   setupLocs: function() {
     this.locs.vNormal = this.gl.getAttribLocation(this.program, "vNormal");
     this.locs.vPosition = this.gl.getAttribLocation(this.program, "vPosition");
-    this.locs.ambientProduct = this.gl.getUniformLocation(this.program, "ambientProduct");
-    this.locs.diffuseProduct = this.gl.getUniformLocation(this.program, "diffuseProduct");
-    this.locs.specularProduct = this.gl.getUniformLocation(this.program, "specularProduct");
+    this.locs.lightAmbient = this.gl.getUniformLocation(this.program, "lightAmbient");
+    this.locs.lightDiffuse = this.gl.getUniformLocation(this.program, "lightDiffuse");
+    this.locs.lightSpecular = this.gl.getUniformLocation(this.program, "lightSpecular");
+    this.locs.materialColor = this.gl.getUniformLocation(this.program, "materialColor");
     this.locs.lightPosition = this.gl.getUniformLocation(this.program, "lightPosition");
     this.locs.shininess = this.gl.getUniformLocation(this.program, "shininess");
     this.locs.projectionMatrix = this.gl.getUniformLocation(this.program, "projectionMatrix");
@@ -30,17 +31,6 @@ var App = {
 
 var pointsArray = [];
 var normalsArray = [];
-
-var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
-var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
-var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
-
-var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
-var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
-var materialSpecular = vec4( 1.0, 0.8, 0.0, 1.0 );
-var materialShininess = 100.0;
-
-var viewerPos;
 
     normalsArray = App.shapes.cone.normals.concat(
                    App.shapes.cylinder.normals.concat(
@@ -66,19 +56,12 @@ var viewerPos;
     this.gl.vertexAttribPointer(this.vPosition, 3, this.gl.FLOAT, false, 0, 0);
     this.gl.enableVertexAttribArray(this.vPosition);
 
-    viewerPos = vec3(0.0, 0.0, -20.0 );
-
     var projection = ortho(-1, 1, -1, 1, -100, 100);
     
-    ambientProduct = mult(lightAmbient, materialAmbient);
-    diffuseProduct = mult(lightDiffuse, materialDiffuse);
-    specularProduct = mult(lightSpecular, materialSpecular);
-
-    this.gl.uniform4fv(this.locs.ambientProduct, flatten(ambientProduct));
-    this.gl.uniform4fv(this.locs.diffuseProduct, flatten(diffuseProduct) );
-    this.gl.uniform4fv(this.locs.specularProduct, flatten(specularProduct) );	
+    this.gl.uniform4fv(this.locs.lightAmbient, vec4(0.2, 0.2, 0.2, 1));
+    this.gl.uniform4fv(this.locs.lightDiffuse, vec4(1, 1, 1, 1));
+    this.gl.uniform4fv(this.locs.lightSpecular, vec4(1, 1, 1, 1));
        
-    this.gl.uniform1f(this.locs.shininess, materialShininess);
     
     this.gl.uniformMatrix4fv(this.locs.projectionMatrix, false, flatten(projection));
     
@@ -90,12 +73,28 @@ var viewerPos;
     sphere: Shapes.Sphere(8)
   },
   models: [
-    {shape: "cone", mvMatrix: mult(translate(-0.5, 0, 0), mat4())},
-    {shape: "sphere", mvMatrix: mult(translate(0.5, 0, 0), mat4())}
+    {shape: "cone", 
+     mvMatrix: mult(translate(-0.5, 0, 0), mat4()),
+     color: [1, 0, 1, 1],
+     shininess: 80},
+    {shape: "cone", 
+     mvMatrix: mult(translate(0, 0.5, 0), mat4()),
+     color: [0, 0, 1, 1],
+     shininess: 60},
+    {shape: "cone", 
+     mvMatrix: mult(translate(0.5, 0, 0), mat4()),
+     color: [0, 1, 0, 1],
+     shininess: 40},
+    {shape: "cone", 
+     mvMatrix: mult(translate(0, -0.5, 0), mat4()),
+     color: [1, 0, 0, 1],
+     shininess: 20},
   ],
   current: function() {
     return {
       shape: "cone",
+      shininess: 100,
+      color: [1, 0.8, 0, 1],
       mvMatrix: mult(rotate(this.rotateX(), 1, 0, 0), mat4())
     };
     /*
@@ -115,8 +114,8 @@ var viewerPos;
   lights: function() {
     var now = new Date().getTime() / 500;
     return [
-      [Math.sin(now), Math.cos(now), this.positionZ()],
-      [-1, 1, 1]
+      [Math.sin(now), Math.cos(now), this.positionZ()]
+      //[-1, 1, 1]
     ];
   },
   sendData: function(el, wireframe, transformLoc, ambientLoc) {
@@ -166,6 +165,8 @@ var viewerPos;
     for (i = 0; i < lights.length; i++) {
       var light = lights[i];
       this.renderModel({shape: "sphere",
+                        shininess: 0,
+                        color: [1, 1, 1, 1],
                         mvMatrix: mult(
                           translate(light[0], light[1], light[2]),
                           scale(0.25, 0.25, 0.25))});
@@ -177,6 +178,8 @@ var viewerPos;
   renderModel: function(model) {
     var shape = this.shapes[model.shape];
     this.gl.uniformMatrix4fv(this.locs.modelViewMatrix, false, flatten(model.mvMatrix));
+    this.gl.uniform1f(this.locs.shininess, model.shininess);
+    this.gl.uniform4fv(this.locs.materialColor, model.color);
     this.gl.drawArrays(this.gl.TRIANGLES, shape.offset, shape.size);
 
   },

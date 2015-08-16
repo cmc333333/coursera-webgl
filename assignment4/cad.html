@@ -31,13 +31,17 @@ void main()
 precision mediump float;
 const int MAX_LIGHTS = 5;
 
-uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+uniform vec4 lightAmbient, lightDiffuse, lightSpecular;
+uniform vec4 materialColor;
 uniform float shininess;
 varying vec3 N, E;
 varying vec3 L[MAX_LIGHTS];
 
 void main()
 {
+    vec4 ambientProduct = lightAmbient * materialColor;
+    vec4 diffuseProduct = lightDiffuse * materialColor;
+    vec4 specularProduct = lightSpecular * materialColor;
     vec4 fColor;
     vec4 diffuse[MAX_LIGHTS], specular[MAX_LIGHTS];
 
