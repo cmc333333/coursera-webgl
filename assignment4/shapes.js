@@ -1,50 +1,35 @@
 var Shapes = {
-  // Convert a triangle strip representation to a lines representation
-  strip2lines: function(stripIndices) {
-    var lines = [stripIndices[0], stripIndices[1]];
-    for (var i = 2; i < stripIndices.length; i++) {
-      lines.push(stripIndices[i-2], stripIndices[i]);
-      lines.push(stripIndices[i-1], stripIndices[i]);
-    }
-    return lines;
-  },
-  // Convert a triangle fan representation to a lines representation
-  fan2lines: function(fanIndices) {
-    var lines = [fanIndices[0], fanIndices[1]];
-    for (var i = 2; i < fanIndices.length; i++) {
-      lines.push(fanIndices[i-1], fanIndices[i]);
-      lines.push(fanIndices[i], fanIndices[0]);
-    }
-    return lines;
-  },
   Cone: function(numBasePoints) {
     var verts = [],
-        coneIndices = [],
-        baseIndices = [];
+        top = vec3(0, 0.25, 0),
+        bottom = vec3(0, -0.25, 0),
+        triangles = [],
+        normals = [],
+        thetas = [],
+        increment = 2 * Math.PI / numBasePoints,
+        t;
 
-    // center point at the top and in the base of the cone
-    verts.push(vec3(0, 0.25, 0), vec3(0, -0.25, 0));
-    coneIndices.push(0);
-    baseIndices.push(1);
-
-    for (var i = 0; i < numBasePoints; i++) {
-      var theta = 2 * Math.PI * i / numBasePoints,
-          idx = i + 2;  // including offset of two center points
-      verts.push(vec3(Math.cos(theta)/4, -0.25, Math.sin(theta)/4));
-      coneIndices.push(idx);
-      baseIndices.push(idx);
+    for (var theta = 0; theta < 2 * Math.PI; theta += increment) {
+      thetas.push(theta);
     }
 
-    // wrap around the base
-    coneIndices.push(2);
-    baseIndices.push(2);
+    for (t = 0; t < thetas.length; t++) {
+      theta = thetas[t];
+      verts.push(vec3(Math.cos(theta)/4, -0.25, Math.sin(theta)/4));
+    }
+
+    for (t = 1; t < thetas.length; t++) {
+      triangles.push(verts[t], top, verts[t-1]);
+      normals.push(vec3(verts[t][0] * 2, 0.25, verts[t][2] * 2),
+                   top,
+                   vec3(verts[t-1][0] * 2, 0.25, verts[t-1][2] * 2));
+      triangles.push(verts[t-1], bottom, verts[t]);
+      normals.push(vec3(0, -0.25, 0), vec3(0, -0.25, 0), vec3(0, -0.25, 0));
+    }
 
     return {
-      vertices: verts,
-      faces: [{mode: "TRIANGLE_FAN", indices: coneIndices},
-              {mode: "TRIANGLE_FAN", indices: baseIndices}],
-      wireframe: [].concat(this.fan2lines(coneIndices))
-                   .concat(this.fan2lines(baseIndices))
+      triangles: triangles,
+      normals: normals
     };
   },
   Cylinder: function(numBasePoints) {

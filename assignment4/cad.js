@@ -87,8 +87,8 @@ function colorCube()
     quad( 5, 4, 0, 1 );
 }
     colorCube();
-    normalsArray = App.shapes.cylinder.normals;
-    pointsArray = App.shapes.cylinder.triangles;
+    normalsArray = App.shapes.cone.normals;
+    pointsArray = App.shapes.cone.triangles;
 
     var nBuffer = this.gl.createBuffer();
     this.gl.bindBuffer( this.gl.ARRAY_BUFFER, nBuffer );
@@ -192,7 +192,7 @@ function colorCube()
     this.gl.uniform4fv(this.locs.lightPosition,
                        [Math.sin(now), Math.cos(now), this.positionZ(), 0.0]);
 
-    this.gl.drawArrays( this.gl.TRIANGLES, 0, this.shapes.cylinder.triangles.length);
+    this.gl.drawArrays( this.gl.TRIANGLES, 0, this.shapes.cone.triangles.length);
     requestAnimFrame(App.render.bind(App));
 
   },
