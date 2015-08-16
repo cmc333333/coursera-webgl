@@ -66,17 +66,14 @@ function quad(a, b, c, d) {
      normal = normalize(normal);
 
      pointsArray.push(vertices[a]); 
-     normalsArray.push(normal); 
      pointsArray.push(vertices[b]); 
-     normalsArray.push(normal); 
      pointsArray.push(vertices[c]); 
-     normalsArray.push(normal);   
      pointsArray.push(vertices[a]);  
-     normalsArray.push(normal); 
      pointsArray.push(vertices[c]); 
-     normalsArray.push(normal); 
      pointsArray.push(vertices[d]); 
-     normalsArray.push(normal);    
+     for (var i = 0; i < 6; i++) {
+       normalsArray.push(normal);    
+     }
 }
 
 
@@ -90,6 +87,8 @@ function colorCube()
     quad( 5, 4, 0, 1 );
 }
     colorCube();
+    normalsArray = App.shapes.sphere.normals;
+    pointsArray = App.shapes.sphere.triangles;
 
     var nBuffer = this.gl.createBuffer();
     this.gl.bindBuffer( this.gl.ARRAY_BUFFER, nBuffer );
@@ -102,7 +101,7 @@ function colorCube()
     this.gl.bindBuffer( this.gl.ARRAY_BUFFER, vBuffer );
     this.gl.bufferData( this.gl.ARRAY_BUFFER, flatten(pointsArray), this.gl.STATIC_DRAW );
     
-    this.gl.vertexAttribPointer(this.vPosition, 4, this.gl.FLOAT, false, 0, 0);
+    this.gl.vertexAttribPointer(this.vPosition, 3, this.gl.FLOAT, false, 0, 0);
     this.gl.enableVertexAttribArray(this.vPosition);
 
     viewerPos = vec3(0.0, 0.0, -20.0 );
@@ -193,7 +192,7 @@ function colorCube()
     this.gl.uniform4fv(this.locs.lightPosition,
                        [Math.sin(now), Math.cos(now), this.positionZ(), 0.0]);
 
-    this.gl.drawArrays( this.gl.TRIANGLES, 0, 32);
+    this.gl.drawArrays( this.gl.TRIANGLES, 0, this.shapes.sphere.triangles.length);
     requestAnimFrame(App.render.bind(App));
 
   },

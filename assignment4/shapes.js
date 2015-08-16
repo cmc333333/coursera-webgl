@@ -88,36 +88,48 @@ var Shapes = {
   },
   Sphere: function(numBasePoints) {
     var verts = [],
-        strips = [],
-        wireframe = [],
+        bottom = vec3(0, -1/4, 0),
+        top = vec3(0, 1/4, 0),
+        triangles = [],
         phis = [],
+        thetas = [],
         increment = 2 * Math.PI / numBasePoints;
 
+    for (var theta = 0; theta < 2 * Math.PI; theta += increment) {
+      thetas.push(theta);
+    }
     for (var phi = 0; phi < Math.PI; phi += increment) {
       phis.push(phi);
     }
-    phis.push(Math.PI);   // always end with the top
+    phis.push(Math.PI);
 
-    for (var theta = 0; theta < 2 * Math.PI; theta += increment) {
-      var strip = {mode: "TRIANGLE_STRIP", indices: []};
+    for (var t = 0; t < thetas.length; t++) {
+      var theta = thetas[t];
       for (var p = 0; p < phis.length; p++) {
-        var phi = phis[p],
-            idx = verts.length,
-            nextIdx = (idx + phis.length) % (numBasePoints * phis.length);
-        strip.indices.push(idx, nextIdx);
+        var phi = phis[p];
         verts.push(vec3(Math.sin(phi)*Math.cos(theta) / 4,
                         Math.sin(phi)*Math.sin(theta) / 4,
                         Math.cos(phi) / 4));
       }
-
-      strips.push(strip);
-      wireframe = wireframe.concat(this.strip2lines(strip.indices));
+    }
+    // strips
+    for (var t=1; t < thetas.length; t++) {
+      var colIdx = t*phis.length,
+          lastColIdx = colIdx - phis.length;
+      for (var p=1; p < phis.length; p++) {
+        var urIdx = colIdx + p,
+            lrIdx = urIdx - 1,
+            ulIdx = lastColIdx + p,
+            llIdx = ulIdx - 1;
+            
+        triangles.push(verts[urIdx], verts[llIdx], verts[lrIdx]);
+        triangles.push(verts[urIdx], verts[ulIdx], verts[llIdx]);
+      }
     }
 
     return {
-      vertices: verts,
-      faces: strips,
-      wireframe: wireframe
+      triangles: triangles,
+      normals: triangles
     };
   }
 }
