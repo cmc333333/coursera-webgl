@@ -92,10 +92,15 @@ var normalsArray = [];
   ],
   current: function() {
     return {
-      shape: "cone",
+      shape: this.shape(),
       shininess: 100,
-      color: [1, 0.8, 0, 1],
-      mvMatrix: mult(rotate(this.rotateX(), 1, 0, 0), mat4())
+      color: this.color(),
+      mvMatrix:
+        mult(translate(this.position()),
+        mult(rotate(this.rotateX(), 1, 0, 0),
+        mult(rotate(this.rotateY(), 0, 1, 0),
+        mult(rotate(this.rotateZ(), 0, 0, 1),
+             scale(this.scale())))))
     };
     /*
     var result = {
@@ -114,7 +119,7 @@ var normalsArray = [];
   lights: function() {
     var now = new Date().getTime() / 500;
     return [
-      [Math.sin(now), Math.cos(now), this.positionZ()]
+      [Math.sin(now), Math.cos(now), 1],
       //[-1, 1, 1]
     ];
   },
@@ -228,12 +233,16 @@ $(function() {
   App.rotateX = valOf('#rotate_x');
   App.rotateY = valOf('#rotate_y');
   App.rotateZ = valOf('#rotate_z');
-  App.positionX = valOf('#position_x');
-  App.positionY = valOf('#position_y');
-  App.positionZ = valOf('#position_z');
-  App.skewX = valOf('#skew_x');
-  App.skewY = valOf('#skew_y');
-  App.skewZ = valOf('#skew_z');
+  App.position = function() {
+    return [parseFloat($('#position_x').val()),
+            parseFloat($('#position_y').val()),
+            parseFloat($('#position_z').val())];
+  };
+  App.scale = function() {
+    return [parseFloat($('#skew_x').val()),
+            parseFloat($('#skew_y').val()),
+            parseFloat($('#skew_z').val())];
+  };
   App.shape = function() { return $('input[name=shape]:checked').val(); };
   App.perspective = function() { return $perspective.is(':checked'); };
   App.color = function() {
