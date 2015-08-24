@@ -93,7 +93,7 @@ var normalsArray = [];
   current: function() {
     return {
       shape: this.shape(),
-      shininess: 100,
+      shininess: this.shininess(),
       color: this.color(),
       mvMatrix:
         mult(translate(this.position()),
@@ -255,6 +255,7 @@ $(function() {
   App.ambientR = function() { return parseInt($('#ambient_r').val())/255; };
   App.ambientG = function() { return parseInt($('#ambient_g').val())/255; };
   App.ambientB = function() { return parseInt($('#ambient_b').val())/255; };
+  App.shininess = valOf('#shininess');
   App.render();
 
   /*

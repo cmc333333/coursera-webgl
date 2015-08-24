@@ -188,7 +188,7 @@ void main()
           <li><a href="#" data-tab="rotation">Rotation</a></li>
           <li><a href="#" data-tab="position">Position</a></li>
           <li><a href="#" data-tab="scale">Scale/Skew</a></li>
-          <li><a href="#" data-tab="color">Color</a></li>
+          <li><a href="#" data-tab="color">Material</a></li>
           <li><a href="#" data-tab="shape">Shape</a></li>
           <li><a href="#" data-tab="import-export">Import/Export</a></li>
         </ul>
@@ -257,6 +257,10 @@ void main()
             <td><input type="button" class="color selected" style='background-color: white;' /></td>
           </tr>
         </table>
+        <div>
+          <label for="shininess">Shininess</label>
+          <input type="range" id="shininess" value="20" min="0" max="100" />
+        </div>
       </div>
       <div data-tab="object:shape" class="tab-body">
         <fieldset>
