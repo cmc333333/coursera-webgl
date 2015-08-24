@@ -176,13 +176,13 @@ void main()
   <div id="controls">
     <div class="horizontal-controls">
       <ul data-controls-for="top">
-        <li><a href="#" data-tab="objects">Objects</a></li><li><a
+        <li><a href="#" data-tab="models">Models</a></li><li><a
                href="#" data-tab="lights">Lights</a></li><li><a
-               href="#" data-tab="perspective">Perspective</a></li>
+               href="#" data-tab="global">Global</a></li>
       </ul>
     </div>
 
-    <div data-tab="top:objects">
+    <div data-tab="top:models">
       <div class="vertical-controls">
         <ul data-controls-for="object">
           <li><a href="#" data-tab="rotation">Rotation</a></li>
@@ -283,7 +283,7 @@ void main()
         <input type="file" id="import" />
       </div>
       <div id="place-container">
-        <input type="button" id="place" value="Place Object" />
+        <input type="button" id="place-model" value="Place Model" />
       </div>
     </div>
 
@@ -291,6 +291,8 @@ void main()
       <div class="vertical-controls">
         <ul data-controls-for="light">
           <li><a href="#" data-tab="ambient">Ambient</a></li>
+          <li><a href="#" data-tab="position">Position</a></li>
+          <li><a href="#" data-tab="movement">Movement</a></li>
         </ul>
       </div>
 
@@ -307,7 +309,7 @@ void main()
       </div>
     </div>
 
-    <div data-tab="top:perspective">
+    <div data-tab="top:global">
       <label for="perspective">Use Perspective</label>
       <input type="checkbox" id="perspective" />
     </div>

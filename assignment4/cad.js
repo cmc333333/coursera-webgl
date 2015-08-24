@@ -14,6 +14,7 @@ var App = {
     this.gl.useProgram(this.program);
 
     this.setupLocs();
+    this.sendStaticData();
   },
   setupLocs: function() {
     this.locs.vNormal = this.gl.getAttribLocation(this.program, "vNormal");
@@ -26,45 +27,44 @@ var App = {
     this.locs.shininess = this.gl.getUniformLocation(this.program, "shininess");
     this.locs.projectionMatrix = this.gl.getUniformLocation(this.program, "projectionMatrix");
     this.locs.modelViewMatrix = this.gl.getUniformLocation(this.program, "modelViewMatrix");
-
-
-
-var pointsArray = [];
-var normalsArray = [];
-
-    normalsArray = App.shapes.cone.normals.concat(
-                   App.shapes.cylinder.normals.concat(
-                   App.shapes.sphere.normals));
-    pointsArray = App.shapes.cone.triangles.concat(
-                  App.shapes.cylinder.triangles.concat(
-                  App.shapes.sphere.triangles));
+  },
+  sendNormals: function() {
+    var normalsArray = App.shapes.cone.normals.concat(
+                       App.shapes.cylinder.normals.concat(
+                       App.shapes.sphere.normals));
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(normalsArray),
+                       this.gl.STATIC_DRAW);
+    
+    this.gl.vertexAttribPointer(this.locs.vNormal, 3, this.gl.FLOAT, false, 0,
+                                0);
+    this.gl.enableVertexAttribArray(this.locs.vNormal);
+  },
+  sendPoints: function() {
+    var pointsArray;
     this.shapes.cone.offset = 0;
     this.shapes.cylinder.offset = this.shapes.cone.size;
-    this.shapes.sphere.offset = this.shapes.cone.size + this.shapes.cylinder.size;
+    this.shapes.sphere.offset = this.shapes.cone.size +
+                                this.shapes.cylinder.size;
 
-    var nBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer( this.gl.ARRAY_BUFFER, nBuffer );
-    this.gl.bufferData( this.gl.ARRAY_BUFFER, flatten(normalsArray), this.gl.STATIC_DRAW );
+    pointsArray = this.shapes.cone.triangles.concat(
+                  this.shapes.cylinder.triangles.concat(
+                  this.shapes.sphere.triangles));
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(pointsArray),
+                       this.gl.STATIC_DRAW);
     
-    this.gl.vertexAttribPointer(this.locs.vNormal, 3, this.gl.FLOAT, false, 0, 0 );
-    this.gl.enableVertexAttribArray(this.locs.vNormal );
+    this.gl.vertexAttribPointer(this.locs.vPosition, 3, this.gl.FLOAT, false,
+                                0, 0);
+    this.gl.enableVertexAttribArray(this.locs.vPosition);
+  },
+  sendStaticData: function() {
+    this.sendNormals();
+    this.sendPoints();
 
-    var vBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer( this.gl.ARRAY_BUFFER, vBuffer );
-    this.gl.bufferData( this.gl.ARRAY_BUFFER, flatten(pointsArray), this.gl.STATIC_DRAW );
-    
-    this.gl.vertexAttribPointer(this.vPosition, 3, this.gl.FLOAT, false, 0, 0);
-    this.gl.enableVertexAttribArray(this.vPosition);
-
-    var projection = ortho(-1, 1, -1, 1, -100, 100);
-    
     this.gl.uniform4fv(this.locs.lightAmbient, vec4(0.2, 0.2, 0.2, 1));
     this.gl.uniform4fv(this.locs.lightDiffuse, vec4(1, 1, 1, 1));
     this.gl.uniform4fv(this.locs.lightSpecular, vec4(1, 1, 1, 1));
-       
-    
-    this.gl.uniformMatrix4fv(this.locs.projectionMatrix, false, flatten(projection));
-    
   },
   locs: {},
   shapes: {
@@ -119,48 +119,19 @@ var normalsArray = [];
   lights: function() {
     var now = new Date().getTime() / 500;
     return [
-      [Math.sin(now), Math.cos(now), 1],
+      //[Math.sin(now), Math.cos(now), 1],
+      [1, Math.sin(now), Math.cos(now)],
+      [Math.sin(now), 1, Math.cos(now)],
       //[-1, 1, 1]
     ];
   },
-  sendData: function(el, wireframe, transformLoc, ambientLoc) {
-    var shape = this.shapes[el.shape],
-        ambientProduct = mult(
-          vec4(this.ambientR(), this.ambientG(), this.ambientB(), 1.0),
-          el.color);
-
-    this.gl.uniform4fv(ambientLoc, flatten(ambientProduct));
-    if (this.perspective()) {
-      this.gl.uniformMatrix4fv(transformLoc, false, flatten(
-        mult(perspective(80, 1, 0.1, -1),
-        mult(translate(0, 0, -1.1),
-             el.transform))));
-    } else {
-      this.gl.uniformMatrix4fv(transformLoc, false, flatten(
-        mult(ortho(-1, 1, -1, 1, -2, 2),
-             el.transform)));
-    }
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, flatten(shape.vertices),
-                       this.gl.STATIC_DRAW);
-    if (wireframe) {
-      this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER,
-                         new Uint16Array(shape.wireframe),
-                         this.gl.STATIC_DRAW);
-      this.gl.drawElements(this.gl.LINES, shape.wireframe.length,
-                           this.gl.UNSIGNED_SHORT, 0);
-    } else {
-      for (var i = 0; i < shape.faces.length; i++) {
-        var face = shape.faces[i];
-        this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER,
-                           new Uint16Array(face.indices),
-                           this.gl.STATIC_DRAW);
-        this.gl.drawElements(this.gl[face.mode], face.indices.length,
-                             this.gl.UNSIGNED_SHORT, 0);
-      }
-    }
-  },
   render: function() {
     this.gl.clear( this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+    var projection = ortho(-1, 1, -1, 1, -100, 100);
+    //var projection = mult(perspective(80, 1, -100, 100));
+
+    this.gl.uniformMatrix4fv(this.locs.projectionMatrix, false, flatten(projection));
             
     var lights = this.lights();
     this.gl.uniform3fv(this.locs.lightPosition, flatten(lights));
@@ -187,17 +158,6 @@ var normalsArray = [];
     this.gl.uniform4fv(this.locs.materialColor, model.color);
     this.gl.drawArrays(this.gl.TRIANGLES, shape.offset, shape.size);
 
-  },
-  render_old: function() {
-    var transformLoc = this.gl.getUniformLocation(this.program, "transform"),
-        ambientLoc = this.gl.getUniformLocation(this.program, "ambientProduct");
-        editing = this.current();
-
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-    for (var i = 0; i < this.elements.length; i++) {
-      this.sendData(this.elements[i], false, transformLoc, ambientLoc);
-    }
-    this.sendData(editing, true, transformLoc, ambientLoc);
   },
   placeObject: function() {
     this.elements.push(this.current());
