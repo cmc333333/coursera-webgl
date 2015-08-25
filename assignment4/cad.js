@@ -103,15 +103,24 @@ var App = {
              scale(this.scale())))))
     };
   },
-  currentLight: function(now) {
-    return vec3(Math.sin(now), Math.cos(now), 1);
+  lightMovements: {
+    fixed: function(now) { return [0, 0, 0]; },
+    xy: function(now) { return [Math.sin(now), Math.cos(now), 0]; },
+    xz: function(now) { return [Math.sin(now), 0, Math.cos(now)]; },
+    yz: function(now) { return [0, Math.sin(now), Math.cos(now)]; },
   },
-  _lights: [
-    //function(now) { return [1, Math.sin(now), Math.cos(now)]; },
-  ],
+  currentLight: function() {
+    return {
+      position: this.lightPosition(),
+      movement: this.lightMovement()
+    };
+  },
+  _lights: [],
   lights: function() {
     var now = new Date().getTime() / 500,
-        lights = [this.currentLight(now)];
+        current = this.currentLight(),
+        lights = [add(this.currentLight().position,
+                      this.lightMovements[this.currentLight().movement](now))];
     for (var i = 0; i < this._lights.length; i++) {
       lights.push(this._lights[i](now));
     }
@@ -198,6 +207,7 @@ $(function() {
             parseFloat($('#skew_z').val())];
   };
   App.shape = function() { return $('input[name=shape]:checked').val(); };
+  App.lightMovement = function() { return $('input[name=movement]:checked').val(); };
   App.perspective = function() { return $perspective.is(':checked'); };
   App.color = function() {
     var $selected = $colors.filter('.selected'),
@@ -214,6 +224,11 @@ $(function() {
       1);
   };
   App.shininess = valOf('#shininess');
+  App.lightPosition = function() {
+    return [parseFloat($('#light_x').val()),
+                parseFloat($('#light_y').val()),
+                parseFloat($('#light_z').val())];
+  };
   App.render();
 
   /*
