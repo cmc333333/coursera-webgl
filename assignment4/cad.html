@@ -137,7 +137,7 @@ void main()
     list-style: none;
     width: 40%;
     padding: 0;
-    margin: 0 1em 0 0;
+    margin: 0 0 1em 0;
   }
   .vertical-controls li {
     display: block;
@@ -184,7 +184,7 @@ void main()
       <ul data-controls-for="top">
         <li><a href="#" data-tab="models">Models</a></li><li><a
                href="#" data-tab="lights">Lights</a></li><li><a
-               href="#" data-tab="global">Global</a></li>
+               href="#" data-tab="etc">Etc</a></li>
       </ul>
     </div>
 
@@ -196,7 +196,6 @@ void main()
           <li><a href="#" data-tab="scale">Scale/Skew</a></li>
           <li><a href="#" data-tab="color">Material</a></li>
           <li><a href="#" data-tab="shape">Shape</a></li>
-          <li><a href="#" data-tab="import-export">Import/Export</a></li>
         </ul>
       </div>
 
@@ -282,12 +281,6 @@ void main()
           </div>
         </fieldset>
       </div>
-      <div data-tab="object:import-export" class="tab-body">
-        <label for="export">Export Objects</label>
-        <input type="button" id="export" value="Download JSON" />
-        <label for="import">Import Objects</label>
-        <input type="file" id="import" />
-      </div>
       <div id="place-container">
         <input type="button" id="place-model" value="Place Model" />
       </div>
@@ -338,11 +331,28 @@ void main()
           </div>
         </fieldset>
       </div>
+      <div id="place-container">
+        <input type="button" id="place-light" value="Place Light" />
+      </div>
     </div>
 
-    <div data-tab="top:global">
-      <label for="perspective">Use Perspective</label>
-      <input type="checkbox" id="perspective" />
+    <div data-tab="top:etc">
+      <div class="vertical-controls">
+        <ul data-controls-for="etc">
+          <li><a href="#" data-tab="perspective">Perspective</a></li>
+          <li><a href="#" data-tab="import-export">Import/Export</a></li>
+        </ul>
+      </div>
+      <div data-tab="etc:perspective" class="tab-body">
+        <label for="perspective">Use Perspective</label>
+        <input type="checkbox" id="perspective" />
+      </div>
+      <div data-tab="etc:import-export" class="tab-body">
+        <label for="export">Export Objects</label>
+        <input type="button" id="export" value="Download JSON" />
+        <label for="import">Import Objects</label>
+        <input type="file" id="import" />
+      </div>
     </div>
   </div>
 </body>

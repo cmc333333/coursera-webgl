@@ -72,24 +72,7 @@ var App = {
     cylinder: Shapes.Cylinder(8),
     sphere: Shapes.Sphere(8)
   },
-  models: [
-    {shape: "cone", 
-     mvMatrix: mult(translate(-0.5, 0, 0), mat4()),
-     color: [1, 0, 1, 1],
-     shininess: 80},
-    {shape: "cone", 
-     mvMatrix: mult(translate(0, 0.5, 0), mat4()),
-     color: [0, 0, 1, 1],
-     shininess: 60},
-    {shape: "cone", 
-     mvMatrix: mult(translate(0.5, 0, 0), mat4()),
-     color: [0, 1, 0, 1],
-     shininess: 40},
-    {shape: "cone", 
-     mvMatrix: mult(translate(0, -0.5, 0), mat4()),
-     color: [1, 0, 0, 1],
-     shininess: 20},
-  ],
+  models: [],
   current: function() {
     return {
       shape: this.shape(),
@@ -103,7 +86,7 @@ var App = {
              scale(this.scale())))))
     };
   },
-  lightMovements: {
+  movements: {
     fixed: function(now) { return [0, 0, 0]; },
     xy: function(now) { return [Math.sin(now), Math.cos(now), 0]; },
     xz: function(now) { return [Math.sin(now), 0, Math.cos(now)]; },
@@ -118,11 +101,11 @@ var App = {
   _lights: [],
   lights: function() {
     var now = new Date().getTime() / 500,
-        current = this.currentLight(),
-        lights = [add(this.currentLight().position,
-                      this.lightMovements[this.currentLight().movement](now))];
+        light = this.currentLight(),
+        lights = [add(light.position, this.movements[light.movement](now))];
     for (var i = 0; i < this._lights.length; i++) {
-      lights.push(this._lights[i](now));
+      light = this._lights[i];
+      lights.push(add(light.position, this.movements[light.movement](now)));
     }
     return lights;
   },
@@ -162,9 +145,11 @@ var App = {
     this.gl.drawArrays(this.gl.TRIANGLES, shape.offset, shape.size);
 
   },
-  placeObject: function() {
-    this.elements.push(this.current());
-    //this.render();
+  placeModel: function() {
+    this.models.push(this.current());
+  },
+  placeLight: function() {
+    this._lights.push(this.currentLight());
   },
   exportData: function() {
     var json = JSON.stringify(this.elements);
@@ -231,12 +216,8 @@ $(function() {
   };
   App.render();
 
-  /*
-  $('input[type=range]').on("input change", App.render.bind(App));
-  $('input[name=shape]').click(App.render.bind(App));
-  $perspective.click(App.render.bind(App));
-  */
-  $('#place').click(App.placeObject.bind(App));
+  $('#place-model').click(App.placeModel.bind(App));
+  $('#place-light').click(App.placeLight.bind(App));
   $colors.click(function() {
     $colors.removeClass('selected');
     $(this).addClass('selected');
