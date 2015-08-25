@@ -27,6 +27,7 @@ var App = {
     this.locs.shininess = this.gl.getUniformLocation(this.program, "shininess");
     this.locs.projectionMatrix = this.gl.getUniformLocation(this.program, "projectionMatrix");
     this.locs.modelViewMatrix = this.gl.getUniformLocation(this.program, "modelViewMatrix");
+    this.locs.numLights = this.gl.getUniformLocation(this.program, "numLights");
   },
   sendNormals: function() {
     var normalsArray = App.shapes.cone.normals.concat(
@@ -62,7 +63,6 @@ var App = {
     this.sendNormals();
     this.sendPoints();
 
-    this.gl.uniform4fv(this.locs.lightAmbient, vec4(0.2, 0.2, 0.2, 1));
     this.gl.uniform4fv(this.locs.lightDiffuse, vec4(1, 1, 1, 1));
     this.gl.uniform4fv(this.locs.lightSpecular, vec4(1, 1, 1, 1));
   },
@@ -102,28 +102,20 @@ var App = {
         mult(rotate(this.rotateZ(), 0, 0, 1),
              scale(this.scale())))))
     };
-    /*
-    var result = {
-      color: this.color(),
-      shape: this.shape(),
-      transform: 
-        mult(translate(this.positionX(), this.positionY(), this.positionZ()),
-        mult(rotate(this.rotateX(), 1, 0, 0),
-        mult(rotate(this.rotateY(), 0, 1, 0),
-        mult(rotate(this.rotateZ(), 0, 0, 1),
-             scale(this.skewX(), this.skewY(), this.skewZ())))))
-    };
-    return result;
-    */
   },
+  currentLight: function(now) {
+    return vec3(Math.sin(now), Math.cos(now), 1);
+  },
+  _lights: [
+    //function(now) { return [1, Math.sin(now), Math.cos(now)]; },
+  ],
   lights: function() {
-    var now = new Date().getTime() / 500;
-    return [
-      //[Math.sin(now), Math.cos(now), 1],
-      [1, Math.sin(now), Math.cos(now)],
-      [Math.sin(now), 1, Math.cos(now)],
-      //[-1, 1, 1]
-    ];
+    var now = new Date().getTime() / 500,
+        lights = [this.currentLight(now)];
+    for (var i = 0; i < this._lights.length; i++) {
+      lights.push(this._lights[i](now));
+    }
+    return lights;
   },
   render: function() {
     this.gl.clear( this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
@@ -133,7 +125,9 @@ var App = {
 
     this.gl.uniformMatrix4fv(this.locs.projectionMatrix, false, flatten(projection));
             
+    this.gl.uniform4fv(this.locs.lightAmbient, this.ambientColor());
     var lights = this.lights();
+    this.gl.uniform1i(this.locs.numLights, lights.length);
     this.gl.uniform3fv(this.locs.lightPosition, flatten(lights));
     for (var i = 0; i < this.models.length; i++) {
       this.renderModel(this.models[i]);
@@ -212,9 +206,13 @@ $(function() {
     components.push(255);
     return $.map(components, function(v) { return parseInt(v)/255; });
   };
-  App.ambientR = function() { return parseInt($('#ambient_r').val())/255; };
-  App.ambientG = function() { return parseInt($('#ambient_g').val())/255; };
-  App.ambientB = function() { return parseInt($('#ambient_b').val())/255; };
+  App.ambientColor = function() {
+    return vec4(
+      parseInt($('#ambient_r').val())/255,
+      parseInt($('#ambient_g').val())/255,
+      parseInt($('#ambient_b').val())/255,
+      1);
+  };
   App.shininess = valOf('#shininess');
   App.render();
 

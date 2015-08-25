@@ -34,6 +34,7 @@ const int MAX_LIGHTS = 5;
 uniform vec4 lightAmbient, lightDiffuse, lightSpecular;
 uniform vec4 materialColor;
 uniform float shininess;
+uniform int numLights;
 varying vec3 N, E;
 varying vec3 L[MAX_LIGHTS];
 
@@ -42,12 +43,15 @@ void main()
     vec4 ambientProduct = lightAmbient * materialColor;
     vec4 diffuseProduct = lightDiffuse * materialColor;
     vec4 specularProduct = lightSpecular * materialColor;
-    vec4 fColor;
+    vec4 fColor = ambientProduct;
     vec4 diffuse[MAX_LIGHTS], specular[MAX_LIGHTS];
 
     float Kd, Ks;
     vec3 H;
     for (int i = 0; i < MAX_LIGHTS; i++) {
+      if (i >= numLights) {
+        continue;
+      }
       H = normalize(L[i] + E);
       Kd = max(dot(L[i], N), 0.0);
       diffuse[i] = Kd*diffuseProduct;
@@ -56,10 +60,12 @@ void main()
       specular[i] = Ks * specularProduct;
       if (dot(L[i], N) < 0.0)
         specular[i] = vec4(0.0, 0.0, 0.0, 1.0);
+      fColor += diffuse[i];
+      fColor += specular[i];
     }
-    fColor = ambientProduct + diffuse[0] + specular[0] + diffuse[1] +
-    specular[1];
-    fColor = fColor / 2.0;
+    if (numLights > 0) {
+      fColor = fColor / float(numLights);
+    }
     fColor.a = 1.0;
     gl_FragColor = fColor;
 }
