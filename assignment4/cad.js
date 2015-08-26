@@ -68,9 +68,9 @@ var App = {
   },
   locs: {},
   shapes: {
-    cone: Shapes.Cone(8),
-    cylinder: Shapes.Cylinder(8),
-    sphere: Shapes.Sphere(8)
+    cone: Shapes.Cone(12),
+    cylinder: Shapes.Cylinder(12),
+    sphere: Shapes.Sphere(12)
   },
   models: [],
   current: function() {
@@ -110,10 +110,15 @@ var App = {
     return lights;
   },
   render: function() {
+    var projection;
     this.gl.clear( this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-    var projection = ortho(-1, 1, -1, 1, -100, 100);
-    //var projection = mult(perspective(80, 1, -100, 100));
+    if (this.perspective()) {
+      projection = mult(perspective(60, 1, .1, 10),
+                        translate(0, 0, -3));
+    } else {
+      projection = ortho(-1, 1, -1, 1, -100, 100);
+    }
 
     this.gl.uniformMatrix4fv(this.locs.projectionMatrix, false, flatten(projection));
             
