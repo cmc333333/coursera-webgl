@@ -68,9 +68,9 @@ var App = {
   },
   locs: {},
   shapes: {
-    cone: Shapes.Cone(12),
-    cylinder: Shapes.Cylinder(12),
-    sphere: Shapes.Sphere(12)
+    cone: Shapes.Cone(16),
+    cylinder: Shapes.Cylinder(16),
+    sphere: Shapes.Sphere(16)
   },
   models: [],
   current: function() {
@@ -157,19 +157,22 @@ var App = {
     this._lights.push(this.currentLight());
   },
   exportData: function() {
-    var json = JSON.stringify(this.elements);
+    var json = JSON.stringify({models: this.models, lights: this._lights});
     window.open("data:application/json," + json);
   },
   loadData: function(file) {
     var reader = new FileReader();
     reader.onload = function() {
-      var elements = JSON.parse(reader.result);
-      for (var i = 0; i < elements.length; i++) {
-        var element = elements[i];
-        element.transform.matrix = true;
-        App.elements.push(element);
+      var obj = JSON.parse(reader.result);
+      for (var i = 0; i < obj.models.length; i++) {
+        var model = obj.models[i];
+        model.mvMatrix.matrix = true;
+        App.models.push(model);
       }
-      //App.render();
+      for (var i = 0; i < obj.lights.length; i++) {
+        var light = obj.lights[i];
+        App._lights.push(light);
+      }
     };
     reader.readAsText(file);
   }
