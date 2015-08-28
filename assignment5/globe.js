@@ -6,7 +6,7 @@ var App = {
     
     //  Configure WebGL
     this.gl.viewport(0, 0, canvas.width, canvas.height);
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
     this.gl.enable(this.gl.DEPTH_TEST);
 
     //  Load shaders and initialize attribute buffers
@@ -39,29 +39,30 @@ var App = {
     this.gl.enableVertexAttribArray(vTexCoord);
   },
   checkerboard: function() {
-var texSize = 64;
+var cols = 64,
+    rows = 64;
 
 // Create a checkerboard pattern using floats
 
     
 var image1 = new Array()
-    for (var i =0; i<texSize; i++)  image1[i] = new Array();
-    for (var i =0; i<texSize; i++) 
-        for ( var j = 0; j < texSize; j++) 
+    for (var i =0; i<rows; i++)  image1[i] = new Array();
+    for (var i =0; i<rows; i++) 
+        for ( var j = 0; j < cols; j++) 
            image1[i][j] = new Float32Array(4);
-    for (var i =0; i<texSize; i++) for (var j=0; j<texSize; j++) {
+    for (var i =0; i<rows; i++) for (var j=0; j<cols; j++) {
         var c = (((i & 0x8) == 0) ^ ((j & 0x8)  == 0));
         image1[i][j] = [c, c, c, 1];
     }
 
 // Convert floats to ubytes for texture
 
-var image2 = new Uint8Array(4*texSize*texSize);
+var image2 = new Uint8Array(4*rows*cols);
 
-    for ( var i = 0; i < texSize; i++ ) 
-        for ( var j = 0; j < texSize; j++ ) 
+    for ( var i = 0; i < rows; i++ ) 
+        for ( var j = 0; j < cols; j++ ) 
            for(var k =0; k<4; k++) 
-                image2[4*texSize*i+4*j+k] = 255*image1[i][j][k];
+                image2[4*cols*i+4*j+k] = 255*image1[i][j][k];
     return image2;
   }(),
   sendTexture: function(data, idx) {
@@ -80,6 +81,7 @@ var image2 = new Uint8Array(4*texSize*texSize);
   },
   render: function() {
     var rotationLoc = this.gl.getUniformLocation(this.program, "rotation");
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.gl.uniformMatrix4fv(rotationLoc, false, flatten(this.rotation()));
     this.gl.drawArrays(this.gl.TRIANGLES, 0, this.sphere.triangles.length);
   },

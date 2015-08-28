@@ -25,7 +25,7 @@ var Shapes = {
         verts.push(vec3(Math.sin(phi)*Math.cos(theta),
                         Math.sin(phi)*Math.sin(theta),
                         Math.cos(phi)));
-        texVerts.push(vec2(t/thetas.length, p/phis.length));
+        texVerts.push(vec2(theta/2/Math.PI, phi/Math.PI));
       }
     }
     // strips
