@@ -41,6 +41,47 @@ void main()
 <script type="text/javascript" src="shapes.js"></script>
 <script type="text/javascript" src="globe.js"></script>
 <style>
+  label {
+    display: block;
+    font-weight: bold;
+    margin-top: 0.5em;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  canvas {
+    border: 1px solid black;
+  }
+
+  #controls {
+    display: inline-block;
+    vertical-align: top;
+    width: 400px;
+    text-align: center;
+    margin-top: 1em;
+    border: 1px solid black;
+  }
+  .vertical-controls ul {
+    float: left;
+    list-style: none;
+    width: 40%;
+    padding: 0;
+    margin: 0 0 1em 0;
+  }
+  .vertical-controls li {
+    display: block;
+    border-right: solid black 1px;
+    border-bottom: solid black 1px;
+    padding: 0.5em 0;
+  }
+  .vertical-controls li a.selected {
+    font-weight: bold;
+  }
+  .tab-body {
+    padding-left: 40%;
+    padding-top: 1em;
+  }
 </style>
 </head>   
 
