@@ -31,6 +31,7 @@ varying vec2 fTexCoord;
 uniform sampler2D tex0;
 uniform samplerCube tex1;
 uniform sampler2D tex2;
+uniform samplerCube tex3;
 uniform int textureSelect;
 
 void main()
@@ -42,7 +43,7 @@ void main()
     } else if (textureSelect == 2) {
       gl_FragColor = texture2D(tex2, fTexCoord);
     } else {
-      gl_FragColor = texture2D(tex2, fTexCoord);
+      gl_FragColor = textureCube(tex3, normal);
     }
 }
 </script>
@@ -140,20 +141,20 @@ void main()
       <fieldset>
         <legend>Texture</legend>
         <div>
-          <input type="radio" name="texture" value="0" checked>
-          <label>Lat/Lon Checkerboard</label>
+          <input id="tex0" type="radio" name="texture" value="0" checked>
+          <label for="tex0">2D Checkerboard</label>
         </div>
         <div>
-          <input type="radio" name="texture" value="1">
-          <label>Cube Checkerboard</label>
+          <input id="tex1" type="radio" name="texture" value="1">
+          <label for="tex1">Cube Checkerboard</label>
         </div>
         <div>
-          <input type="radio" name="texture" value="2">
-          <label>Lat/Lon Earth</label>
+          <input id="tex2" type="radio" name="texture" value="2">
+          <label for="tex2">2D Earth</label>
         </div>
         <div>
-          <input type="radio" name="texture" value="3">
-          <label>Cube Earth</label>
+          <input id="tex3" type="radio" name="texture" value="3">
+          <label for="tex3">Cube Earth</label>
         </div>
       </fieldset>
     </div>

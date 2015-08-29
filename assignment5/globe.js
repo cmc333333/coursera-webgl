@@ -1,7 +1,12 @@
 var App = {
   init: function() {
     var canvas = document.getElementById("gl-canvas"),
-        earthImg = new Image();
+        earthImg = new Image(),
+        sidesLoaded = 0,
+        sideImages = [new Image(), new Image(), new Image(), new Image(),
+                      new Image(), new Image()],
+        sideImagesCallback,
+        cubeSide;
     this.gl = WebGLUtils.setupWebGL(canvas);
     if (!this.gl) { alert( "WebGL isn't available" ); }
     
@@ -17,12 +22,27 @@ var App = {
     this.sendPoints();
     this.sendTexCoords();
     this.sendGrid(this.mkCheckerboard(128, 64), 0, 64, 128);
-    this.sendCube(this.mkCheckerboard(64, 64), 1);
+    cubeSide = this.mkCheckerboard(64, 64);
+    this.sendCube([cubeSide, cubeSide, cubeSide, cubeSide, cubeSide, cubeSide],
+                  1, 64, 64);
+
     earthImg.onload = function() {
       App.sendGrid(earthImg, 2);
       App.render();
     };
     earthImg.src = "earth.jpg";
+
+    sideImagesCallback = function() {
+      sidesLoaded++;
+      if (sidesLoaded == sideImages.length) {
+        App.sendCube(sideImages, 3);
+        App.render();
+      }
+    };
+    for (var i = 0; i < sideImages.length; i++) {
+      sideImages[i].onload = sideImagesCallback;
+      sideImages[i].src = "side" + i + ".jpg";
+    }
   },
   sphere: Shapes.Sphere(20),
   sendPoints: function() {
@@ -59,17 +79,24 @@ var App = {
     }
     return imgData;
   },
-  sendCube: function(imgData, idx) {
+  sendCube: function(sides, idx, rows, cols) {
     var texture = this.gl.createTexture(),
         texLoc = this.gl.getUniformLocation(this.program, 'tex' + idx);
 
     this.gl.activeTexture(this.gl['TEXTURE' + idx]);
     this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, texture);
     this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
-    for (i = 0; i < 6; i++) {
-      this.gl.texImage2D(
-        this.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, this.gl.RGBA, 64, 64, 0,
-        this.gl.RGBA, this.gl.UNSIGNED_BYTE, imgData);
+    for (var i = 0; i < sides.length; i++) {
+      if (rows) {
+        this.gl.texImage2D(
+          this.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
+          0, this.gl.RGBA, cols, rows, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
+          sides[i]);
+      } else {
+        this.gl.texImage2D(
+          this.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
+          0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, sides[i]);
+      }
     }
     this.gl.generateMipmap(this.gl.TEXTURE_CUBE_MAP);
     this.gl.texParameteri(this.gl.TEXTURE_CUBE_MAP, this.gl.TEXTURE_MIN_FILTER, 
