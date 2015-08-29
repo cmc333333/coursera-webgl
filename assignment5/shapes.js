@@ -47,9 +47,7 @@ var Shapes = {
 
     return {
       triangles: triangles,
-      normals: triangles,
-      texCoords: texCoords,
-      size: triangles.length
+      texCoords: texCoords
     };
   }
 };

@@ -10,6 +10,7 @@ attribute vec3 vPosition;
 attribute vec2 vTexCoord;
 
 varying vec3 normal;
+varying vec2 fTexCoord;
 
 uniform mat4 rotation;
 
@@ -17,6 +18,7 @@ void main()
 {
     gl_Position = rotation * vec4(vPosition, 1);
     normal = vPosition.xyz;
+    fTexCoord = vTexCoord;
 }
 </script>
 
@@ -24,11 +26,19 @@ void main()
 precision mediump float;
 
 varying vec3 normal;
-uniform samplerCube texMap;
+varying vec2 fTexCoord;
+
+uniform samplerCube cubeTex;
+uniform sampler2D latLonTex;
+uniform int useCube;
 
 void main()
 {
-    gl_FragColor = textureCube(texMap, normal);
+    if (useCube == 0) {
+      gl_FragColor = texture2D(latLonTex, fTexCoord);
+    } else {
+      gl_FragColor = textureCube(cubeTex, normal);
+    }
 }
 </script>
 
@@ -82,6 +92,21 @@ void main()
     padding-left: 40%;
     padding-top: 1em;
   }
+
+  fieldset {
+    border: 0;
+    text-align: left;
+    display: inline-block;
+  }
+  fieldset legend {
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+  }
+  fieldset label {
+    display: inline-block;
+    font-weight: inherit;
+  }
 </style>
 </head>   
 
@@ -94,7 +119,6 @@ void main()
       <ul data-controls-for="lhs">
         <li><a href="#" data-tab="rotation">Rotation</a></li>
         <li><a href="#" data-tab="texture">Texture</a></li>
-        <li><a href="#" data-tab="mapping">Mapping</a></li>
       </ul>
 
       <div data-tab="lhs:rotation" class="tab-body">
@@ -104,6 +128,30 @@ void main()
         <input type="range" id="rotate_y" value="0" min="0" max="359" />
         <label for="rotate_z">Rotate Around Z</label>
         <input type="range" id="rotate_z" value="0" min="0" max="359" />
+      </div>
+      <div data-tab="lhs:texture" class="tab-body">
+        <fieldset>
+          <legend>Pattern</legend>
+          <div>
+            <input type="radio" name="pattern" value="checkerboard" checked>
+            <label>Checkerboard</label>
+          </div>
+          <div>
+            <input type="radio" name="pattern" value="globe">
+            <label>Globe</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Projection</legend>
+          <div>
+            <input type="radio" name="projection" value="latlon" checked>
+            <label>Lat/Lon</label>
+          </div>
+          <div>
+            <input type="radio" name="projection" value="cube">
+            <label>Texture Cube</label>
+          </div>
+        </fieldset>
       </div>
     </div>
   </div>

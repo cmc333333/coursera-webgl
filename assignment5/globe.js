@@ -14,7 +14,7 @@ var App = {
     this.gl.useProgram(this.program);
 
     this.sendPoints();
-    //this.sendTexCoords();
+    this.sendTexCoords();
     this.sendTexture(this.checkerboard, 0);
   },
   sphere: Shapes.Sphere(20),
@@ -66,8 +66,11 @@ var image2 = new Uint8Array(4*rows*cols);
     return image2;
   }(),
   sendTexture: function(data, idx) {
-    var texture = this.gl.createTexture();
-    this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, texture);
+    var latLonTex = this.gl.createTexture(),
+        cubeTex = this.gl.createTexture();
+
+    this.gl.activeTexture(this.gl['TEXTURE' + idx]);
+    this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, cubeTex);
     this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
     for (var i = 0; i < 6; i++) {
       this.gl.texImage2D(
@@ -79,9 +82,10 @@ var image2 = new Uint8Array(4*rows*cols);
                           this.gl.NEAREST_MIPMAP_LINEAR );
     this.gl.texParameteri(this.gl.TEXTURE_CUBE_MAP, this.gl.TEXTURE_MAG_FILTER,
                           this.gl.NEAREST);
-    //this.gl.activeTexture(this.gl['TEXTURE' + idx]);
-    /*
-    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    this.gl.uniform1i(this.gl.getUniformLocation(this.program, "cubeTex"), 0);
+
+    this.gl.activeTexture(this.gl['TEXTURE' + (idx+1)]);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, latLonTex);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 64, 64,
                        0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
                        data);
@@ -90,12 +94,14 @@ var image2 = new Uint8Array(4*rows*cols);
                           this.gl.NEAREST_MIPMAP_LINEAR );
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER,
                           this.gl.NEAREST);
-    */
+    this.gl.uniform1i(this.gl.getUniformLocation(this.program, "latLonTex"), 1);
   },
   render: function() {
-    var rotationLoc = this.gl.getUniformLocation(this.program, "rotation");
+    var rotationLoc = this.gl.getUniformLocation(this.program, "rotation"),
+        useCubeLoc = this.gl.getUniformLocation(this.program, "useCube");
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.gl.uniformMatrix4fv(rotationLoc, false, flatten(this.rotation()));
+    this.gl.uniform1i(useCubeLoc, this.useCube() ? 1 : 0);
     this.gl.drawArrays(this.gl.TRIANGLES, 0, this.sphere.triangles.length);
   },
 };
@@ -106,6 +112,9 @@ $(function() {
     return mult(rotate($("#rotate_x").val(), 1, 0, 0),
            mult(rotate($("#rotate_y").val(), 0, 1, 0),
                 rotate($("#rotate_z").val(), 0, 0, 1)));
+  };
+  App.useCube = function() {
+    return $('input[value=cube]').is(':checked');
   };
   App.render();
 
