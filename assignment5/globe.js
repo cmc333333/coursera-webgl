@@ -16,8 +16,8 @@ var App = {
 
     this.sendPoints();
     this.sendTexCoords();
-    this.sendCube(this.mkCheckerboard(64, 64), 0);
-    this.sendGrid(this.mkCheckerboard(128, 64), 1, 64, 128);
+    this.sendGrid(this.mkCheckerboard(128, 64), 0, 64, 128);
+    this.sendCube(this.mkCheckerboard(64, 64), 1);
     earthImg.onload = function() {
       App.sendGrid(earthImg, 2);
       App.render();
@@ -78,23 +78,6 @@ var App = {
                           this.gl.NEAREST);
     this.gl.uniform1i(texLoc, idx);
   },
-  sendGrid1: function(imgData, idx) {
-    var texture = this.gl.createTexture(),
-        texLoc = this.gl.getUniformLocation(this.program, 'tex' + idx),
-        rows = Math.sqrt(imgData.length / 4 / 2),
-        cols = 2 * rows;
-
-    this.gl.activeTexture(this.gl['TEXTURE' + idx]);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, cols, rows,
-                       0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, imgData);
-    this.gl.generateMipmap(this.gl.TEXTURE_2D);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, 
-                          this.gl.NEAREST_MIPMAP_LINEAR);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER,
-                          this.gl.NEAREST);
-    this.gl.uniform1i(texLoc, idx);
-  },
   sendGrid: function(image, idx, rows, cols) {
     var texture = this.gl.createTexture(),
         texLoc = this.gl.getUniformLocation(this.program, 'tex' + idx);
@@ -117,10 +100,11 @@ var App = {
   },
   render: function() {
     var rotationLoc = this.gl.getUniformLocation(this.program, "rotation"),
-        useCubeLoc = this.gl.getUniformLocation(this.program, "useCube");
+        textureSelectLoc = this.gl.getUniformLocation(
+          this.program, "textureSelect");
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.gl.uniformMatrix4fv(rotationLoc, false, flatten(this.rotation()));
-    this.gl.uniform1i(useCubeLoc, this.useCube() ? 1 : 0);
+    this.gl.uniform1i(textureSelectLoc, this.texture());
     this.gl.drawArrays(this.gl.TRIANGLES, 0, this.sphere.triangles.length);
   },
 };
@@ -132,8 +116,8 @@ $(function() {
            mult(rotate($("#rotate_y").val(), 0, 1, 0),
                 rotate($("#rotate_z").val(), 0, 0, 1)));
   };
-  App.useCube = function() {
-    return $('input[value=cube]').is(':checked');
+  App.texture = function() {
+    return parseInt($('input[name=texture]:checked').val());
   };
   App.render();
 
