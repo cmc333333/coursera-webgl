@@ -28,16 +28,17 @@ precision mediump float;
 varying vec3 normal;
 varying vec2 fTexCoord;
 
-uniform samplerCube cubeTex;
-uniform sampler2D latLonTex;
+uniform samplerCube tex0;
+uniform sampler2D tex1;
+uniform sampler2D tex2;
 uniform int useCube;
 
 void main()
 {
     if (useCube == 0) {
-      gl_FragColor = texture2D(latLonTex, fTexCoord);
+      gl_FragColor = texture2D(tex2, fTexCoord);
     } else {
-      gl_FragColor = textureCube(cubeTex, normal);
+      gl_FragColor = textureCube(tex0, normal);
     }
 }
 </script>

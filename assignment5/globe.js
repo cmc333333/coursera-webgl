@@ -1,6 +1,7 @@
 var App = {
   init: function() {
-    canvas = document.getElementById("gl-canvas");
+    var canvas = document.getElementById("gl-canvas"),
+        earthImg = new Image();
     this.gl = WebGLUtils.setupWebGL(canvas);
     if (!this.gl) { alert( "WebGL isn't available" ); }
     
@@ -15,7 +16,13 @@ var App = {
 
     this.sendPoints();
     this.sendTexCoords();
-    this.sendTexture(this.checkerboard, 0);
+    this.sendCube(this.mkCheckerboard(64, 64), 0);
+    this.sendGrid(this.mkCheckerboard(128, 64), 1, 64, 128);
+    earthImg.onload = function() {
+      App.sendGrid(earthImg, 2);
+      App.render();
+    };
+    earthImg.src = "earth.jpg";
   },
   sphere: Shapes.Sphere(20),
   sendPoints: function() {
@@ -38,63 +45,75 @@ var App = {
     this.gl.vertexAttribPointer(vTexCoord, 2, this.gl.FLOAT, false, 0, 0);
     this.gl.enableVertexAttribArray(vTexCoord);
   },
-  checkerboard: function() {
-var cols = 64,
-    rows = 64;
+  mkCheckerboard: function(rows, cols) {
+    var imgData = new Uint8Array(4*rows*cols);
 
-// Create a checkerboard pattern using floats
-
-    
-var image1 = new Array()
-    for (var i =0; i<rows; i++)  image1[i] = new Array();
-    for (var i =0; i<rows; i++) 
-        for ( var j = 0; j < cols; j++) 
-           image1[i][j] = new Float32Array(4);
-    for (var i =0; i<rows; i++) for (var j=0; j<cols; j++) {
-        var c = (((i & 0x8) == 0) ^ ((j & 0x8)  == 0));
-        image1[i][j] = [c, c, c, 1];
+    for (var i = 0; i < rows; i++) {
+      for (var j = 0; j < cols; j++) {
+        var c = (((i & 0x8) === 0) ^ ((j & 0x8)  === 0));
+        imgData[4*cols*i + 4*j] = 255*c;
+        imgData[4*cols*i + 4*j + 1] = 255*c;
+        imgData[4*cols*i + 4*j + 2] = 255*c;
+        imgData[4*cols*i + 4*j + 3] = 255;
+      }
     }
-
-// Convert floats to ubytes for texture
-
-var image2 = new Uint8Array(4*rows*cols);
-
-    for ( var i = 0; i < rows; i++ ) 
-        for ( var j = 0; j < cols; j++ ) 
-           for(var k =0; k<4; k++) 
-                image2[4*cols*i+4*j+k] = 255*image1[i][j][k];
-    return image2;
-  }(),
-  sendTexture: function(data, idx) {
-    var latLonTex = this.gl.createTexture(),
-        cubeTex = this.gl.createTexture();
+    return imgData;
+  },
+  sendCube: function(imgData, idx) {
+    var texture = this.gl.createTexture(),
+        texLoc = this.gl.getUniformLocation(this.program, 'tex' + idx);
 
     this.gl.activeTexture(this.gl['TEXTURE' + idx]);
-    this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, cubeTex);
+    this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, texture);
     this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
-    for (var i = 0; i < 6; i++) {
+    for (i = 0; i < 6; i++) {
       this.gl.texImage2D(
         this.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, this.gl.RGBA, 64, 64, 0,
-        this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+        this.gl.RGBA, this.gl.UNSIGNED_BYTE, imgData);
     }
     this.gl.generateMipmap(this.gl.TEXTURE_CUBE_MAP);
     this.gl.texParameteri(this.gl.TEXTURE_CUBE_MAP, this.gl.TEXTURE_MIN_FILTER, 
                           this.gl.NEAREST_MIPMAP_LINEAR );
     this.gl.texParameteri(this.gl.TEXTURE_CUBE_MAP, this.gl.TEXTURE_MAG_FILTER,
                           this.gl.NEAREST);
-    this.gl.uniform1i(this.gl.getUniformLocation(this.program, "cubeTex"), 0);
+    this.gl.uniform1i(texLoc, idx);
+  },
+  sendGrid1: function(imgData, idx) {
+    var texture = this.gl.createTexture(),
+        texLoc = this.gl.getUniformLocation(this.program, 'tex' + idx),
+        rows = Math.sqrt(imgData.length / 4 / 2),
+        cols = 2 * rows;
 
-    this.gl.activeTexture(this.gl['TEXTURE' + (idx+1)]);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, latLonTex);
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 64, 64,
-                       0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
-                       data);
+    this.gl.activeTexture(this.gl['TEXTURE' + idx]);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, cols, rows,
+                       0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, imgData);
     this.gl.generateMipmap(this.gl.TEXTURE_2D);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, 
-                          this.gl.NEAREST_MIPMAP_LINEAR );
+                          this.gl.NEAREST_MIPMAP_LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER,
                           this.gl.NEAREST);
-    this.gl.uniform1i(this.gl.getUniformLocation(this.program, "latLonTex"), 1);
+    this.gl.uniform1i(texLoc, idx);
+  },
+  sendGrid: function(image, idx, rows, cols) {
+    var texture = this.gl.createTexture(),
+        texLoc = this.gl.getUniformLocation(this.program, 'tex' + idx);
+
+    this.gl.activeTexture(this.gl['TEXTURE' + idx]);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    if (rows) {
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, cols, rows,
+                         0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+    } else {
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA,
+                         this.gl.UNSIGNED_BYTE, image);
+    }
+    this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, 
+                          this.gl.NEAREST_MIPMAP_LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER,
+                          this.gl.NEAREST);
+    this.gl.uniform1i(texLoc, idx);
   },
   render: function() {
     var rotationLoc = this.gl.getUniformLocation(this.program, "rotation"),
