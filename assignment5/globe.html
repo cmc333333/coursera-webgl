@@ -9,26 +9,26 @@
 attribute vec3 vPosition;
 attribute vec2 vTexCoord;
 
-varying vec2 fTexCoord;
+varying vec3 normal;
 
 uniform mat4 rotation;
 
 void main()
 {
     gl_Position = rotation * vec4(vPosition, 1);
-    fTexCoord = vTexCoord;
+    normal = vPosition.xyz;
 }
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
 
-varying vec2 fTexCoord;
-uniform sampler2D texture;
+varying vec3 normal;
+uniform samplerCube texMap;
 
 void main()
 {
-    gl_FragColor = texture2D(texture, fTexCoord);
+    gl_FragColor = textureCube(texMap, normal);
 }
 </script>
 

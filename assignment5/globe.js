@@ -14,7 +14,7 @@ var App = {
     this.gl.useProgram(this.program);
 
     this.sendPoints();
-    this.sendTexCoords();
+    //this.sendTexCoords();
     this.sendTexture(this.checkerboard, 0);
   },
   sphere: Shapes.Sphere(20),
@@ -67,9 +67,21 @@ var image2 = new Uint8Array(4*rows*cols);
   }(),
   sendTexture: function(data, idx) {
     var texture = this.gl.createTexture();
-    this.gl.activeTexture(this.gl['TEXTURE' + idx]);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, texture);
     this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
+    for (var i = 0; i < 6; i++) {
+      this.gl.texImage2D(
+        this.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, this.gl.RGBA, 64, 64, 0,
+        this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+    }
+    this.gl.generateMipmap(this.gl.TEXTURE_CUBE_MAP);
+    this.gl.texParameteri(this.gl.TEXTURE_CUBE_MAP, this.gl.TEXTURE_MIN_FILTER, 
+                          this.gl.NEAREST_MIPMAP_LINEAR );
+    this.gl.texParameteri(this.gl.TEXTURE_CUBE_MAP, this.gl.TEXTURE_MAG_FILTER,
+                          this.gl.NEAREST);
+    //this.gl.activeTexture(this.gl['TEXTURE' + idx]);
+    /*
+    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 64, 64,
                        0, this.gl.RGBA, this.gl.UNSIGNED_BYTE,
                        data);
@@ -78,6 +90,7 @@ var image2 = new Uint8Array(4*rows*cols);
                           this.gl.NEAREST_MIPMAP_LINEAR );
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER,
                           this.gl.NEAREST);
+    */
   },
   render: function() {
     var rotationLoc = this.gl.getUniformLocation(this.program, "rotation");
